@@ -5,9 +5,11 @@ import com.ejden.app.data.AppearanceRepository
 import com.ejden.app.data.CashRepository
 import com.ejden.app.data.ClientRepository
 import com.ejden.app.data.CreditPaymentRepository
+import com.ejden.app.data.DashboardRepository
 import com.ejden.app.data.ExpenseRepository
 import com.ejden.app.data.FileStore
 import com.ejden.app.data.KeyValueStore
+import com.ejden.app.data.PeriodRepository
 import com.ejden.app.data.ProductRepository
 import com.ejden.app.data.SaleRepository
 import com.ejden.app.data.SettingsRepository
@@ -32,6 +34,10 @@ class EjdenApp : Application() {
         private set
     lateinit var appearance: AppearanceRepository
         private set
+    lateinit var period: PeriodRepository
+        private set
+    lateinit var dashboard: DashboardRepository
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -44,5 +50,7 @@ class EjdenApp : Application() {
         cash = CashRepository(store, sales, credits, expenses)
         settings = SettingsRepository(store)
         appearance = AppearanceRepository(store)
+        period = PeriodRepository(store)
+        dashboard = DashboardRepository(sales, cash, clients, credits, products)
     }
 }
