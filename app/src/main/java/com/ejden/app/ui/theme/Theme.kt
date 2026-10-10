@@ -71,13 +71,13 @@ object Ejden {
 }
 
 @Composable
-fun EjdenTheme(appearance: Appearance, page: Boolean = false, content: @Composable () -> Unit) {
+fun EjdenTheme(appearance: Appearance, page: Boolean = false, mixed: Boolean = false, content: @Composable () -> Unit) {
     val dark = when (appearance.theme) {
         ThemeChoice.Dark -> true
         ThemeChoice.Light -> false
         ThemeChoice.Auto -> isSystemInDarkTheme()
     }
-    val c = if (page) (if (dark) PageDarkColors else PageLightColors) else (if (dark) DarkColors else LightColors)
+    val c = if (mixed) (if (dark) DarkColors else PageLightColors) else if (page) (if (dark) PageDarkColors else PageLightColors) else (if (dark) DarkColors else LightColors)
     val scheme = if (dark) {
         darkColorScheme(
             primary = c.primary, background = c.background, surface = c.surface,
