@@ -62,5 +62,6 @@ val MODULE_CATEGORIES: List<ModuleCategory> = listOf(
 fun moduleRoute(id: String): String = when (id) {
     "produits" -> Routes.PRODUCTS
     "ajouter-produit" -> Routes.PRODUCT_ADD
+    "ventes" -> Routes.SALES
     else -> Routes.module(id)
 }

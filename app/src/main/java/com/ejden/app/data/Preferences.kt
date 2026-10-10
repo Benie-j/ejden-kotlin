@@ -4,6 +4,7 @@ package com.ejden.app.data
 class PreferencesRepository(private val store: KeyValueStore) {
     companion object {
         const val THRESHOLD_KEY = "ejden_default_threshold"
+        const val CREDIT_KEY = "ejden_allow_credit"
     }
 
     /** Seuil d'alerte proposé pour un nouveau produit (0 = aucun). */
@@ -23,4 +24,9 @@ class PreferencesRepository(private val store: KeyValueStore) {
         if (value < 0 || value > 1_000_000) return false
         return store.set(THRESHOLD_KEY, value.toString())
     }
+
+    /** Ventes à crédit autorisées (oui par défaut). */
+    fun getAllowCredit(): Boolean = store.get(CREDIT_KEY) != "0"
+
+    fun saveAllowCredit(enabled: Boolean): Boolean = store.set(CREDIT_KEY, if (enabled) "1" else "0")
 }

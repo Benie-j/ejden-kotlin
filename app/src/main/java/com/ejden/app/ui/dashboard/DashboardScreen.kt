@@ -140,7 +140,7 @@ fun DashboardScreen(nav: NavController) {
                 DashboardHeader(
                     periodLabel = period.buttonLabel,
                     onPeriod = { periodOpen = true },
-                    onNewSale = { nav.open(Routes.module("ventes")) }
+                    onNewSale = { nav.open(Routes.SALES) }
                 )
                 Spacer(Modifier.height(20.dp))
 

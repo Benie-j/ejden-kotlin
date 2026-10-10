@@ -7,6 +7,7 @@ object Routes {
     const val DASHBOARD = "dashboard"
     const val PRODUCTS = "produits"
     const val MODULE = "module/{id}"
+    const val SALES = "ventes"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 
