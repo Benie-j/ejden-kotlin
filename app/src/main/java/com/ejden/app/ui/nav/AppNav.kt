@@ -25,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ejden.app.EjdenApp
 import com.ejden.app.ui.dashboard.DashboardScreen
+import com.ejden.app.ui.history.HistoryScreen
 import com.ejden.app.ui.intro.IntroScreen
 import com.ejden.app.ui.products.ProductFormScreen
 import com.ejden.app.ui.products.ProductsScreen
@@ -61,6 +62,9 @@ fun EjdenNav() {
         }
         composable(Routes.PRODUCTS) {
             EjdenTheme(appearance, page = true) { ProductsScreen(nav) }
+        }
+        composable(Routes.HISTORY) {
+            EjdenTheme(appearance, mixed = true) { HistoryScreen(nav) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }
