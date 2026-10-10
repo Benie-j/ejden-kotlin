@@ -2,7 +2,10 @@ package com.ejden.app
 
 import android.app.Application
 import com.ejden.app.data.AppearanceRepository
+import com.ejden.app.data.CashRepository
+import com.ejden.app.data.ClientRepository
 import com.ejden.app.data.CreditPaymentRepository
+import com.ejden.app.data.ExpenseRepository
 import com.ejden.app.data.FileStore
 import com.ejden.app.data.KeyValueStore
 import com.ejden.app.data.ProductRepository
@@ -19,6 +22,12 @@ class EjdenApp : Application() {
         private set
     lateinit var credits: CreditPaymentRepository
         private set
+    lateinit var clients: ClientRepository
+        private set
+    lateinit var expenses: ExpenseRepository
+        private set
+    lateinit var cash: CashRepository
+        private set
     lateinit var settings: SettingsRepository
         private set
     lateinit var appearance: AppearanceRepository
@@ -30,6 +39,9 @@ class EjdenApp : Application() {
         products = ProductRepository(store)
         sales = SaleRepository(store, products)
         credits = CreditPaymentRepository(store, sales)
+        clients = ClientRepository(store, sales, credits)
+        expenses = ExpenseRepository(store)
+        cash = CashRepository(store, sales, credits, expenses)
         settings = SettingsRepository(store)
         appearance = AppearanceRepository(store)
     }
