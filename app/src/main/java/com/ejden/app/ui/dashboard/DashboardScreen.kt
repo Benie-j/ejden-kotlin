@@ -1,11 +1,12 @@
 package com.ejden.app.ui.dashboard
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,8 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,6 +76,30 @@ fun DashboardScreen(nav: NavController) {
         .take(1)
         .uppercase()
 
+    // Panneaux ouverts (conservés à la rotation) et message temporaire.
+    var quickOpen by rememberSaveable { mutableStateOf(false) }
+    var moreOpen by rememberSaveable { mutableStateOf(false) }
+    var toastText by remember { mutableStateOf("") }
+    var toastVisible by remember { mutableStateOf(false) }
+    var toastToken by remember { mutableIntStateOf(0) }
+
+    fun showToast(text: String) {
+        toastText = text
+        toastVisible = true
+        toastToken += 1
+    }
+
+    LaunchedEffect(toastToken) {
+        if (toastToken > 0) {
+            delay(2500)
+            toastVisible = false
+        }
+    }
+
+    // Retour : un panneau ouvert se ferme avant toute autre action.
+    BackHandler(enabled = quickOpen) { quickOpen = false }
+    BackHandler(enabled = moreOpen) { moreOpen = false }
+
     val sidePadding = if (LocalConfiguration.current.screenWidthDp <= 430) 11.dp else 14.dp
     val navInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
@@ -106,10 +133,40 @@ fun DashboardScreen(nav: NavController) {
         BottomNav(
             onHome = { nav.switchTab(Routes.DASHBOARD) },
             onSales = { nav.switchTab(Routes.module("historique-ventes")) },
-            onAdd = { /* panneau « actions rapides » : étape 3b-2 */ },
+            onAdd = { quickOpen = true },
             onProducts = { nav.switchTab(Routes.PRODUCTS) },
-            onMore = { /* menu « Plus » : étape 3b-2 */ },
+            onMore = { moreOpen = true },
             modifier = Modifier.align(Alignment.BottomCenter)
+        )
+
+        QuickActionsSheet(
+            visible = quickOpen,
+            onClose = { quickOpen = false },
+            onSelect = { id ->
+                quickOpen = false
+                nav.open(Routes.module(id))
+            }
+        )
+
+        MoreMenuSheet(
+            visible = moreOpen,
+            onClose = { moreOpen = false },
+            onOpen = { id ->
+                moreOpen = false
+                nav.open(moduleRoute(id))
+            },
+            onSoon = { label ->
+                moreOpen = false
+                showToast("$label : bientôt disponible.")
+            }
+        )
+
+        AppToast(
+            text = toastText,
+            visible = toastVisible,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(start = 16.dp, end = 16.dp, bottom = 96.dp + navInset)
         )
     }
 }
