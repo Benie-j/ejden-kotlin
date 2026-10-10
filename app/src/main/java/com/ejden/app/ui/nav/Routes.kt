@@ -6,7 +6,36 @@ object Routes {
     const val INTRO = "intro"
     const val DASHBOARD = "dashboard"
     const val PRODUCTS = "produits"
+    const val MODULE = "module/{id}"
+
+    /** Module pas encore migré : écran « En construction ». */
+    fun module(id: String): String = "module/$id"
 }
+
+private val MODULE_TITLES = mapOf(
+    "produits" to "Produits",
+    "clients" to "Clients",
+    "stock" to "Stock",
+    "fournisseurs" to "Fournisseurs",
+    "commandes" to "Commandes",
+    "caisse" to "Caisse",
+    "depenses" to "Dépenses",
+    "credits" to "Crédits",
+    "finances" to "Finances",
+    "devis" to "Devis",
+    "factures" to "Factures",
+    "recus" to "Reçus",
+    "rapports" to "Rapports",
+    "statistiques" to "Statistiques",
+    "notifications" to "Notifications",
+    "sauvegarde" to "Sauvegarde",
+    "parametres" to "Paramètres",
+    "ventes" to "Nouvelle vente",
+    "historique-ventes" to "Ventes",
+    "ajouter-produit" to "Ajouter un produit"
+)
+
+fun moduleTitle(id: String): String = MODULE_TITLES[id] ?: id
 
 /** Ouvre un écran par-dessus l'actuel (jamais deux fois le même au sommet). */
 fun NavController.open(route: String) {

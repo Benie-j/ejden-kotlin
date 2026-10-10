@@ -1,17 +1,25 @@
 package com.ejden.app.ui.theme
 
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-
-enum class ThemeMode { Dark, Light }
+import com.ejden.app.data.Appearance
+import com.ejden.app.data.ThemeChoice
 
 class EjdenColors(
     val primary: Color, val primaryDark: Color, val primarySoft: Color,
@@ -50,23 +58,62 @@ object Radius {
 }
 
 val LocalEjden = staticCompositionLocalOf { DarkColors }
+val LocalDark = staticCompositionLocalOf { true }
+val LocalReduceMotion = staticCompositionLocalOf { false }
 
 object Ejden {
     val colors: EjdenColors
         @Composable @ReadOnlyComposable get() = LocalEjden.current
+    val dark: Boolean
+        @Composable @ReadOnlyComposable get() = LocalDark.current
+    val reduceMotion: Boolean
+        @Composable @ReadOnlyComposable get() = LocalReduceMotion.current
 }
 
 @Composable
-fun EjdenTheme(mode: ThemeMode = ThemeMode.Dark, content: @Composable () -> Unit) {
-    val c = if (mode == ThemeMode.Dark) DarkColors else LightColors
-    val scheme = if (mode == ThemeMode.Dark) {
-        darkColorScheme(primary = c.primary, background = c.background, surface = c.surface,
-            onBackground = c.text, onSurface = c.text, error = c.error, outline = c.border)
-    } else {
-        lightColorScheme(primary = c.primary, background = c.background, surface = c.surface,
-            onBackground = c.text, onSurface = c.text, error = c.error, outline = c.border)
+fun EjdenTheme(appearance: Appearance, content: @Composable () -> Unit) {
+    val dark = when (appearance.theme) {
+        ThemeChoice.Dark -> true
+        ThemeChoice.Light -> false
+        ThemeChoice.Auto -> isSystemInDarkTheme()
     }
-    CompositionLocalProvider(LocalEjden provides c) {
+    val c = if (dark) DarkColors else LightColors
+    val scheme = if (dark) {
+        darkColorScheme(
+            primary = c.primary, background = c.background, surface = c.surface,
+            onBackground = c.text, onSurface = c.text, error = c.error, outline = c.border
+        )
+    } else {
+        lightColorScheme(
+            primary = c.primary, background = c.background, surface = c.surface,
+            onBackground = c.text, onSurface = c.text, error = c.error, outline = c.border
+        )
+    }
+
+    // Icônes de la barre d'état et de navigation lisibles selon le thème de l'app.
+    val activity = LocalContext.current as? ComponentActivity
+    if (activity != null) {
+        DisposableEffect(dark) {
+            activity.enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.auto(
+                    android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT
+                ) { dark },
+                navigationBarStyle = SystemBarStyle.auto(
+                    android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT
+                ) { dark }
+            )
+            onDispose { }
+        }
+    }
+
+    // Équivalent du « zoom » CSS (texte grand / très grand).
+    val base = LocalDensity.current
+    CompositionLocalProvider(
+        LocalEjden provides c,
+        LocalDark provides dark,
+        LocalReduceMotion provides appearance.reduceMotion,
+        LocalDensity provides Density(base.density * appearance.textSize.zoom, base.fontScale)
+    ) {
         MaterialTheme(colorScheme = scheme, content = content)
     }
 }
