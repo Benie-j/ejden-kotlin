@@ -10,6 +10,7 @@ import com.ejden.app.data.ExpenseRepository
 import com.ejden.app.data.FileStore
 import com.ejden.app.data.KeyValueStore
 import com.ejden.app.data.PeriodRepository
+import com.ejden.app.data.ProductPrefsRepository
 import com.ejden.app.data.ProductRepository
 import com.ejden.app.data.SaleRepository
 import com.ejden.app.data.SettingsRepository
@@ -19,6 +20,8 @@ class EjdenApp : Application() {
     lateinit var store: KeyValueStore
         private set
     lateinit var products: ProductRepository
+        private set
+    lateinit var productPrefs: ProductPrefsRepository
         private set
     lateinit var sales: SaleRepository
         private set
@@ -43,6 +46,7 @@ class EjdenApp : Application() {
         super.onCreate()
         store = FileStore(File(filesDir, "data"))
         products = ProductRepository(store)
+        productPrefs = ProductPrefsRepository(store)
         sales = SaleRepository(store, products)
         credits = CreditPaymentRepository(store, sales)
         clients = ClientRepository(store, sales, credits)

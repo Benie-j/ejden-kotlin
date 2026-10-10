@@ -32,7 +32,8 @@ private val MODULE_TITLES = mapOf(
     "parametres" to "Paramètres",
     "ventes" to "Nouvelle vente",
     "historique-ventes" to "Ventes",
-    "ajouter-produit" to "Ajouter un produit"
+    "ajouter-produit" to "Ajouter un produit",
+    "modifier-produit" to "Modifier le produit"
 )
 
 fun moduleTitle(id: String): String = MODULE_TITLES[id] ?: id
