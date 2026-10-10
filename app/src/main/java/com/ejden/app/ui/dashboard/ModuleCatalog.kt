@@ -58,6 +58,9 @@ val MODULE_CATEGORIES: List<ModuleCategory> = listOf(
     )
 )
 
-/** Écran de destination d'un module (Produits a déjà sa route). */
-fun moduleRoute(id: String): String =
-    if (id == "produits") Routes.PRODUCTS else Routes.module(id)
+/** Écran de destination d'un module ou d'une action rapide. */
+fun moduleRoute(id: String): String = when (id) {
+    "produits" -> Routes.PRODUCTS
+    "ajouter-produit" -> Routes.PRODUCT_ADD
+    else -> Routes.module(id)
+}

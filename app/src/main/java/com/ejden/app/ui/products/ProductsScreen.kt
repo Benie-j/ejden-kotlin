@@ -155,8 +155,8 @@ fun ProductsScreen(nav: NavController) {
     }
 
     val navInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val goAdd = { nav.open(Routes.module("ajouter-produit")) }
-    val goEdit = { _: Product -> nav.open(Routes.module("modifier-produit")) }
+    val goAdd = { nav.open(Routes.PRODUCT_ADD) }
+    val goEdit = { product: Product -> nav.open(Routes.productEdit(product.id)) }
 
     Box(Modifier.fillMaxSize().background(c.background)) {
         Column(

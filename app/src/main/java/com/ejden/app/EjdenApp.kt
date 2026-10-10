@@ -10,6 +10,7 @@ import com.ejden.app.data.ExpenseRepository
 import com.ejden.app.data.FileStore
 import com.ejden.app.data.KeyValueStore
 import com.ejden.app.data.PeriodRepository
+import com.ejden.app.data.PreferencesRepository
 import com.ejden.app.data.ProductPrefsRepository
 import com.ejden.app.data.ProductRepository
 import com.ejden.app.data.SaleRepository
@@ -37,6 +38,8 @@ class EjdenApp : Application() {
         private set
     lateinit var appearance: AppearanceRepository
         private set
+    lateinit var preferences: PreferencesRepository
+        private set
     lateinit var period: PeriodRepository
         private set
     lateinit var dashboard: DashboardRepository
@@ -54,6 +57,7 @@ class EjdenApp : Application() {
         cash = CashRepository(store, sales, credits, expenses)
         settings = SettingsRepository(store)
         appearance = AppearanceRepository(store)
+        preferences = PreferencesRepository(store)
         period = PeriodRepository(store)
         dashboard = DashboardRepository(sales, cash, clients, credits, products)
     }

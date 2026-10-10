@@ -217,7 +217,7 @@ fun DashboardScreen(nav: NavController) {
             onClose = { quickOpen = false },
             onSelect = { id ->
                 quickOpen = false
-                nav.open(Routes.module(id))
+                nav.open(moduleRoute(id))
             }
         )
 

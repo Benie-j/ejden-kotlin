@@ -7,6 +7,10 @@ object Routes {
     const val DASHBOARD = "dashboard"
     const val PRODUCTS = "produits"
     const val MODULE = "module/{id}"
+    const val PRODUCT_ADD = "produits/ajouter"
+    const val PRODUCT_EDIT = "produits/modifier/{id}"
+
+    fun productEdit(id: String): String = "produits/modifier/" + android.net.Uri.encode(id)
 
     /** Module pas encore migré : écran « En construction ». */
     fun module(id: String): String = "module/$id"
@@ -67,5 +71,15 @@ fun NavController.goBack() {
         popBackStack()
     } else {
         navigate(Routes.DASHBOARD) { launchSingleTop = true }
+    }
+}
+
+/** Revient à un écran de la pile ; s'il n'y est pas, l'ouvre à la place de l'écran actuel. */
+fun NavController.returnTo(route: String) {
+    if (popBackStack(route, inclusive = false)) return
+    val current = currentBackStackEntry?.destination?.route
+    navigate(route) {
+        if (current != null) popUpTo(current) { inclusive = true }
+        launchSingleTop = true
     }
 }

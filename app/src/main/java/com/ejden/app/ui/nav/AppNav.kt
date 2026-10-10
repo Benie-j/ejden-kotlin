@@ -26,6 +26,7 @@ import androidx.navigation.navArgument
 import com.ejden.app.EjdenApp
 import com.ejden.app.ui.dashboard.DashboardScreen
 import com.ejden.app.ui.intro.IntroScreen
+import com.ejden.app.ui.products.ProductFormScreen
 import com.ejden.app.ui.products.ProductsScreen
 import com.ejden.app.ui.theme.Ejden
 import com.ejden.app.ui.theme.EjdenTheme
@@ -59,6 +60,16 @@ fun EjdenNav() {
         }
         composable(Routes.PRODUCTS) {
             EjdenTheme(appearance, page = true) { ProductsScreen(nav) }
+        }
+        composable(Routes.PRODUCT_ADD) {
+            EjdenTheme(appearance, page = true) { ProductFormScreen(nav, null) }
+        }
+        composable(
+            Routes.PRODUCT_EDIT,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { entry ->
+            val id = entry.arguments?.getString("id") ?: ""
+            EjdenTheme(appearance, page = true) { ProductFormScreen(nav, id) }
         }
         composable(
             Routes.MODULE,
