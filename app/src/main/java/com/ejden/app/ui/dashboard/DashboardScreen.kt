@@ -33,6 +33,7 @@ import com.ejden.app.data.DashboardData
 import com.ejden.app.data.formatNumber
 import com.ejden.app.data.greetingFor
 import com.ejden.app.data.resolvePeriod
+import com.ejden.app.ui.components.tap
 import com.ejden.app.ui.nav.Routes
 import com.ejden.app.ui.nav.open
 import com.ejden.app.ui.nav.switchTab
