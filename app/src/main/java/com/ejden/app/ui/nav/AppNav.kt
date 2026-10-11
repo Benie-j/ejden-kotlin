@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +32,7 @@ import com.ejden.app.ui.modules.CashScreen
 import com.ejden.app.ui.modules.ClientsScreen
 import com.ejden.app.ui.modules.CreditsScreen
 import com.ejden.app.ui.modules.ExpensesScreen
+import com.ejden.app.ui.modules.SettingsScreen
 import com.ejden.app.ui.products.ProductFormScreen
 import com.ejden.app.ui.products.ProductsScreen
 import com.ejden.app.ui.sales.SalesScreen
@@ -41,7 +43,7 @@ import com.ejden.app.ui.theme.EjdenTheme
 fun EjdenNav() {
     val nav = rememberNavController()
     val app = LocalContext.current.applicationContext as EjdenApp
-    val appearance = remember { app.appearance.get() }
+    val appearance by app.appearanceState
 
     // Argument facultatif « ?new= » : l'écran place le curseur dans le bon champ.
     val newArg = listOf(
@@ -93,6 +95,9 @@ fun EjdenNav() {
         composable(Routes.CASH + "?new={new}", arguments = newArg) { entry ->
             val requested = entry.arguments?.getString("new")
             EjdenTheme(appearance, mixed = true) { CashScreen(nav, requested) }
+        }
+        composable(Routes.SETTINGS) {
+            EjdenTheme(appearance, mixed = true) { SettingsScreen(nav) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }

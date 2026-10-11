@@ -58,11 +58,11 @@ class ModuleToastState {
 }
 
 @Composable
-fun rememberModuleToast(): ModuleToastState {
+fun rememberModuleToast(durationMs: Long = 3000): ModuleToastState {
     val state = remember { ModuleToastState() }
     LaunchedEffect(state.token) {
         if (state.token > 0) {
-            delay(3000)
+            delay(durationMs)
             state.visible = false
         }
     }
@@ -77,6 +77,7 @@ fun ModuleScaffold(
     onBack: () -> Unit,
     toast: ModuleToastState,
     listState: LazyListState = rememberLazyListState(),
+    maxWidth: androidx.compose.ui.unit.Dp = 640.dp,
     content: LazyListScope.() -> Unit
 ) {
     val c = Ejden.colors
@@ -84,7 +85,7 @@ fun ModuleScaffold(
 
     Box(Modifier.fillMaxSize().background(c.background), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
-            Modifier.widthIn(max = 640.dp).fillMaxHeight().statusBarsPadding().imePadding(),
+            Modifier.widthIn(max = maxWidth).fillMaxHeight().statusBarsPadding().imePadding(),
             state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 40.dp + navInset)
         ) {

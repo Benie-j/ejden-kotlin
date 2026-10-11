@@ -29,4 +29,6 @@ class PreferencesRepository(private val store: KeyValueStore) {
     fun getAllowCredit(): Boolean = store.get(CREDIT_KEY) != "0"
 
     fun saveAllowCredit(enabled: Boolean): Boolean = store.set(CREDIT_KEY, if (enabled) "1" else "0")
+
+    fun saveLanguage(code: String): Boolean = store.set("ejden_lang", code)
 }

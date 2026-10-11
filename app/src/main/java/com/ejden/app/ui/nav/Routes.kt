@@ -13,6 +13,7 @@ object Routes {
     const val CREDITS = "module/credits"
     const val EXPENSES = "module/depenses"
     const val CASH = "module/caisse"
+    const val SETTINGS = "module/parametres"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 
