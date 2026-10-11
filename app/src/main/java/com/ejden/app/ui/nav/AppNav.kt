@@ -27,6 +27,8 @@ import com.ejden.app.EjdenApp
 import com.ejden.app.ui.dashboard.DashboardScreen
 import com.ejden.app.ui.history.HistoryScreen
 import com.ejden.app.ui.intro.IntroScreen
+import com.ejden.app.ui.modules.ClientsScreen
+import com.ejden.app.ui.modules.CreditsScreen
 import com.ejden.app.ui.products.ProductFormScreen
 import com.ejden.app.ui.products.ProductsScreen
 import com.ejden.app.ui.sales.SalesScreen
@@ -65,6 +67,12 @@ fun EjdenNav() {
         }
         composable(Routes.HISTORY) {
             EjdenTheme(appearance, mixed = true) { HistoryScreen(nav) }
+        }
+        composable(Routes.CLIENTS) {
+            EjdenTheme(appearance, mixed = true) { ClientsScreen(nav) }
+        }
+        composable(Routes.CREDITS) {
+            EjdenTheme(appearance, mixed = true) { CreditsScreen(nav) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }
