@@ -128,4 +128,11 @@ class AppearanceRepository(private val store: KeyValueStore) {
 
     fun saveReduceMotion(enabled: Boolean): Boolean =
         store.set("ejden_reduce_motion", if (enabled) "1" else "0")
+
+    fun saveTheme(choice: ThemeChoice): Boolean = store.set("ejden_theme", choice.id)
+
+    fun saveTextSize(size: TextSize): Boolean = store.set("ejden_text_size", size.id ?: "normal")
+
+    fun saveReduceMotion(enabled: Boolean): Boolean =
+        store.set("ejden_reduce_motion", if (enabled) "1" else "0")
 }
