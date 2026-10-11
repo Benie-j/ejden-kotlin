@@ -63,5 +63,8 @@ fun moduleRoute(id: String): String = when (id) {
     "produits" -> Routes.PRODUCTS
     "ajouter-produit" -> Routes.PRODUCT_ADD
     "ventes" -> Routes.SALES
+    "clients-new" -> Routes.CLIENTS + "?new=1"
+    "depenses-new" -> Routes.EXPENSES + "?new=1"
+    "caisse-new" -> Routes.CASH + "?new=in"
     else -> Routes.module(id)
 }

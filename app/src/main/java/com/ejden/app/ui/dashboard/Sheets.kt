@@ -69,9 +69,9 @@ private class QuickAction(
 private val QUICK_ACTIONS = listOf(
     QuickAction("ventes", AppIcons.QuickSale, "Nouvelle vente", "Enregistrer une nouvelle vente"),
     QuickAction("ajouter-produit", AppIcons.QuickProduct, "Ajouter un produit", "Enregistrer un nouveau produit"),
-    QuickAction("clients", AppIcons.QuickClient, "Ajouter un client", "Créer une nouvelle fiche client"),
-    QuickAction("depenses", AppIcons.QuickExpense, "Nouvelle dépense", "Enregistrer une dépense"),
-    QuickAction("caisse", AppIcons.QuickCashIn, "Entrée de caisse", "Enregistrer une entrée d'argent")
+    QuickAction("clients-new", AppIcons.QuickClient, "Ajouter un client", "Créer une nouvelle fiche client"),
+    QuickAction("depenses-new", AppIcons.QuickExpense, "Nouvelle dépense", "Enregistrer une dépense"),
+    QuickAction("caisse-new", AppIcons.QuickCashIn, "Entrée de caisse", "Enregistrer une entrée d'argent")
 )
 
 // ---------------------------------------------------------------------------

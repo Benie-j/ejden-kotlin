@@ -11,6 +11,8 @@ object Routes {
     const val HISTORY = "module/historique-ventes"
     const val CLIENTS = "module/clients"
     const val CREDITS = "module/credits"
+    const val EXPENSES = "module/depenses"
+    const val CASH = "module/caisse"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 

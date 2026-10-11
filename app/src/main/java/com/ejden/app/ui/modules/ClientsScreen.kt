@@ -36,6 +36,7 @@ import com.ejden.app.ui.components.rememberResumeKey
 import com.ejden.app.ui.nav.goBack
 import com.ejden.app.ui.theme.Ejden
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.Collator
@@ -46,7 +47,7 @@ import java.util.Locale
 private data class ClientsData(val clients: List<Client>, val sales: List<Sale>, val payments: List<CreditPayment>)
 
 @Composable
-fun ClientsScreen(nav: NavController) {
+fun ClientsScreen(nav: NavController, focusNew: Boolean = false) {
     val context = LocalContext.current
     val app = context.applicationContext as EjdenApp
     val c = Ejden.colors
@@ -100,6 +101,13 @@ fun ClientsScreen(nav: NavController) {
             requester.requestFocus()
         } catch (e: IllegalStateException) {
             // champ pas encore affiché
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (focusNew) {
+            delay(300)
+            focus(nameFocus)
         }
     }
 

@@ -27,8 +27,10 @@ import com.ejden.app.EjdenApp
 import com.ejden.app.ui.dashboard.DashboardScreen
 import com.ejden.app.ui.history.HistoryScreen
 import com.ejden.app.ui.intro.IntroScreen
+import com.ejden.app.ui.modules.CashScreen
 import com.ejden.app.ui.modules.ClientsScreen
 import com.ejden.app.ui.modules.CreditsScreen
+import com.ejden.app.ui.modules.ExpensesScreen
 import com.ejden.app.ui.products.ProductFormScreen
 import com.ejden.app.ui.products.ProductsScreen
 import com.ejden.app.ui.sales.SalesScreen
@@ -40,6 +42,15 @@ fun EjdenNav() {
     val nav = rememberNavController()
     val app = LocalContext.current.applicationContext as EjdenApp
     val appearance = remember { app.appearance.get() }
+
+    // Argument facultatif « ?new= » : l'écran place le curseur dans le bon champ.
+    val newArg = listOf(
+        navArgument("new") {
+            type = NavType.StringType
+            nullable = true
+            defaultValue = null
+        }
+    )
 
     NavHost(
         navController = nav,
@@ -68,11 +79,20 @@ fun EjdenNav() {
         composable(Routes.HISTORY) {
             EjdenTheme(appearance, mixed = true) { HistoryScreen(nav) }
         }
-        composable(Routes.CLIENTS) {
-            EjdenTheme(appearance, mixed = true) { ClientsScreen(nav) }
+        composable(Routes.CLIENTS + "?new={new}", arguments = newArg) { entry ->
+            val focusNew = entry.arguments?.getString("new") != null
+            EjdenTheme(appearance, mixed = true) { ClientsScreen(nav, focusNew) }
         }
         composable(Routes.CREDITS) {
             EjdenTheme(appearance, mixed = true) { CreditsScreen(nav) }
+        }
+        composable(Routes.EXPENSES + "?new={new}", arguments = newArg) { entry ->
+            val focusNew = entry.arguments?.getString("new") != null
+            EjdenTheme(appearance, mixed = true) { ExpensesScreen(nav, focusNew) }
+        }
+        composable(Routes.CASH + "?new={new}", arguments = newArg) { entry ->
+            val requested = entry.arguments?.getString("new")
+            EjdenTheme(appearance, mixed = true) { CashScreen(nav, requested) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }
