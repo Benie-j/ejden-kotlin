@@ -68,7 +68,11 @@ import com.ejden.app.ui.components.PhotoPrep
 import com.ejden.app.ui.components.ProductIcons
 import com.ejden.app.ui.components.StrokeIcon
 import com.ejden.app.ui.components.dashedBorder
+import com.ejden.app.ui.components.rememberCameraGate
 import com.ejden.app.ui.components.rememberPhoto
+import com.ejden.app.ui.scanner.BarcodeScannerDialog
+import com.ejden.app.ui.scanner.ScannerStyle
+import com.ejden.app.ui.scanner.rememberFormScanner
 import com.ejden.app.ui.components.tap
 import com.ejden.app.ui.nav.Routes
 import com.ejden.app.ui.nav.goBack
@@ -209,6 +213,7 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
     }
 
     // Photo : appareil photo ou galerie.
+    val cameraGate = rememberCameraGate { notice("Accès à la caméra refusé. Autorisez-le dans les réglages.") }
     var showSource by remember { mutableStateOf(false) }
     var cameraUri by remember { mutableStateOf<Uri?>(null) }
     var cameraFile by remember { mutableStateOf<File?>(null) }
@@ -284,6 +289,7 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
         }
     }
 
+    val scanner = rememberFormScanner(all, editing?.id, { barcode = it }, { notice(it) })
     var confirmDelete by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize().imePadding()) {
@@ -419,7 +425,7 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
                                 barcode, { barcode = it },
                                 edit = isEdit,
                                 focusRequester = focus[ProductField.Barcode],
-                                onScan = { notice("Scanner : bientôt disponible.") }
+                                onScan = { scanner.open() }
                             )
                             Text(
                                 "Saisissez le code ou utilisez l'appareil photo pour le scanner.",
@@ -492,6 +498,7 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
         }
     }
 
+    BarcodeScannerDialog(scanner, ScannerStyle.Plain, "Scanner un code-barres")
     if (showSource) {
         AlertDialog(
             onDismissRequest = { showSource = false },
@@ -500,7 +507,7 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
                 Column {
                     TextButton(onClick = {
                         showSource = false
-                        takePicture()
+                        cameraGate { takePicture() }
                     }) { Text("Prendre une photo") }
                     TextButton(onClick = {
                         showSource = false

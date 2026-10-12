@@ -100,6 +100,9 @@ import com.ejden.app.ui.components.StrokeIcon
 import com.ejden.app.ui.components.pressable
 import com.ejden.app.ui.components.rememberPhoto
 import com.ejden.app.ui.components.rememberResumeKey
+import com.ejden.app.ui.scanner.BarcodeScannerDialog
+import com.ejden.app.ui.scanner.ScannerStyle
+import com.ejden.app.ui.scanner.rememberSearchScanner
 import com.ejden.app.ui.components.tap
 import com.ejden.app.ui.nav.Routes
 import com.ejden.app.ui.nav.goBack
@@ -154,10 +157,12 @@ fun ProductsScreen(nav: NavController) {
         }
     }
 
+    val scanner = rememberSearchScanner({ products }, { query = it }, { notice(it) })
     val navInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val goAdd = { nav.open(Routes.PRODUCT_ADD) }
     val goEdit = { product: Product -> nav.open(Routes.productEdit(product.id)) }
 
+    BarcodeScannerDialog(scanner, ScannerStyle.Plain, "Scanner un code-barres")
     Box(Modifier.fillMaxSize().background(c.background)) {
         Column(
             Modifier
@@ -169,7 +174,7 @@ fun ProductsScreen(nav: NavController) {
             ProductsHeader(onBack = { nav.goBack() }, onAdd = goAdd)
             Spacer(Modifier.height(24.dp))
 
-            SearchBox(query, { query = it }, onScan = { notice("Scanner : bientôt disponible.") })
+            SearchBox(query, { query = it }, onScan = { scanner.open() })
             Spacer(Modifier.height(16.dp))
 
             Row(

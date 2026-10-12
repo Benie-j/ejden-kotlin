@@ -67,6 +67,9 @@ import com.ejden.app.ui.components.SalesIcons
 import com.ejden.app.ui.components.StrokeIcon
 import com.ejden.app.ui.components.pressable
 import com.ejden.app.ui.components.rememberResumeKey
+import com.ejden.app.ui.scanner.BarcodeScannerDialog
+import com.ejden.app.ui.scanner.ScannerStyle
+import com.ejden.app.ui.scanner.rememberSalesScanner
 import com.ejden.app.ui.components.tap
 import com.ejden.app.ui.nav.Routes
 import com.ejden.app.ui.nav.goBack
@@ -267,6 +270,7 @@ fun SalesScreen(nav: NavController) {
     }
 
     // Focus sur le montant à l'ouverture de l'encaissement.
+    val scanner = rememberSalesScanner({ app.products.getProducts() }, { cart }, { products = it }, { applyCart(it) }, { notice(it) })
     LaunchedEffect(checkoutOpen) {
         if (checkoutOpen) {
             delay(300)
@@ -315,7 +319,7 @@ fun SalesScreen(nav: NavController) {
                 SearchArea(
                     query = query,
                     onQuery = { query = it },
-                    onScan = { notice("Scanner : bientôt disponible.") }
+                    onScan = { scanner.open() }
                 )
 
                 Column(Modifier.padding(start = 2.dp, end = 2.dp, top = 24.dp, bottom = 12.dp)) {
@@ -449,6 +453,7 @@ fun SalesScreen(nav: NavController) {
         }
     }
 
+    BarcodeScannerDialog(scanner, ScannerStyle.Sales, "Scanner un produit")
     if (showDiscount) {
         var text by remember { mutableStateOf(if (discount > 0.0) plainNumber(discount) else "") }
         AlertDialog(
