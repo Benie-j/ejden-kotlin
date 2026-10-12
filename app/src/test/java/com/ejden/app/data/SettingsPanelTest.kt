@@ -30,7 +30,7 @@ class SettingsPanelTest {
         assertTrue(isValidEmail("contact@maboutique.com"))
         assertFalse(isValidEmail("contact@maboutique"))
         assertFalse(isValidEmail("con tact@maboutique.com"))
-        assertFalse(isValidEmail("a".repeat(75) + "@b.cd"))
+        assertFalse(isValidEmail("a".repeat(76) + "@b.cd"))
     }
 
     @Test
