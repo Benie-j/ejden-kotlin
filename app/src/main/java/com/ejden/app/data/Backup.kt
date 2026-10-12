@@ -45,7 +45,7 @@ private val CLIENT_ID_PATTERN = Regex("[A-Za-z0-9._-]{10,120}\\.apps\\.googleuse
 
 data class BackupMeta(val lastFile: String?, val lastDrive: String?, val clientId: String)
 
-class BackupRepository(private val store: KeyValueStore) {
+class BackupRepository(val store: KeyValueStore) {
     companion object {
         const val META_KEY = "ejden_backup_meta"
     }

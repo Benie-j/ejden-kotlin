@@ -28,6 +28,7 @@ import com.ejden.app.EjdenApp
 import com.ejden.app.ui.dashboard.DashboardScreen
 import com.ejden.app.ui.history.HistoryScreen
 import com.ejden.app.ui.intro.IntroScreen
+import com.ejden.app.ui.modules.BackupScreen
 import com.ejden.app.ui.modules.CashScreen
 import com.ejden.app.ui.modules.ClientsScreen
 import com.ejden.app.ui.modules.CreditsScreen
@@ -98,6 +99,9 @@ fun EjdenNav() {
         }
         composable(Routes.SETTINGS) {
             EjdenTheme(appearance, mixed = true) { SettingsScreen(nav) }
+        }
+        composable(Routes.BACKUP) {
+            EjdenTheme(appearance, mixed = true) { BackupScreen(nav) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }

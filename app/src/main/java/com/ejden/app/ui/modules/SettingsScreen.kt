@@ -66,6 +66,7 @@ import com.ejden.app.ui.components.rememberPhoto
 import com.ejden.app.ui.components.tap
 import com.ejden.app.ui.nav.Routes
 import com.ejden.app.ui.nav.goBack
+import com.ejden.app.ui.nav.open
 import com.ejden.app.ui.nav.returnTo
 import com.ejden.app.ui.theme.Ejden
 import kotlinx.coroutines.Dispatchers
@@ -865,7 +866,11 @@ private fun DataPanel(app: EjdenApp, nav: NavController, toast: ModuleToastState
 
         SettingsSection("Dernière sauvegarde") {
             InfoRow("Fichier de sauvegarde", lastBackupLabel(meta.lastFile), last = false)
-            InfoRow("Google Drive", lastBackupLabel(meta.lastDrive), last = true)
+            InfoRow("Google Drive", lastBackupLabel(meta.lastDrive), last = false)
+            SettingsLink(
+                "Sauvegarder, restaurer, exporter, importer",
+                "Fichier de sauvegarde et Google Drive"
+            ) { nav.open(Routes.BACKUP) }
         }
 
         SettingsSection(
@@ -986,5 +991,21 @@ private fun AboutPanel() {
             SoonRow("Signaler un problème", "Décrire un souci rencontré", last = false)
             SoonRow("Conditions d'utilisation", "Règles d'usage de l'application", last = true)
         }
+    }
+}
+
+@Composable
+private fun SettingsLink(title: String, subtitle: String, onClick: () -> Unit) {
+    val c = Ejden.colors
+    Row(
+        Modifier.padding(top = 4.dp).fillMaxWidth().heightIn(min = 56.dp).tap(onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(subtitle, color = c.textSecondary, fontSize = 12.sp)
+        }
+        StrokeIcon(AppIcons.Arrow, c.textSecondary, 18.dp, strokeWidth = 2f)
     }
 }
