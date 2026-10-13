@@ -971,6 +971,7 @@ private fun AboutPanel() {
     }
 
     Column {
+        CrashReportSection()
         SettingsSection("EJDEN") {
             Text(
                 "Gestion de boutique pour commerçants, artisans et petites entreprises.",

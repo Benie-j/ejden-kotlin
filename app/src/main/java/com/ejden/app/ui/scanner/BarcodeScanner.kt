@@ -1,5 +1,7 @@
 package com.ejden.app.ui.scanner
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.util.Size
@@ -174,7 +176,7 @@ private fun ScannerContent(state: BarcodeScannerState, style: ScannerStyle, titl
     val c = Ejden.colors
     val sales = style == ScannerStyle.Sales
     val view = LocalView.current
-    val activity = LocalContext.current as? ComponentActivity
+    val activity = LocalContext.current.findActivity()
     var torchSupported by remember { mutableStateOf(false) }
     val cooldown = remember { Cooldown() }
 
@@ -500,7 +502,7 @@ private fun CameraPreview(
     onError: () -> Unit
 ) {
     val context = LocalContext.current
-    val owner = context as LifecycleOwner
+    val owner: LifecycleOwner? = context.findActivity()
     val currentOnCode by rememberUpdatedState(onCode)
     val currentOnError by rememberUpdatedState(onError)
     val currentOnTorch by rememberUpdatedState(onTorchSupported)
@@ -514,6 +516,10 @@ private fun CameraPreview(
     var camera by remember { mutableStateOf<Camera?>(null) }
 
     DisposableEffect(Unit) {
+        if (owner == null) {
+            currentOnError()
+            return@DisposableEffect onDispose { }
+        }
         val executor = Executors.newSingleThreadExecutor()
         val analyzer = CodeAnalyzer { code -> currentOnCode(code) }
         val future = ProcessCameraProvider.getInstance(context)
@@ -564,4 +570,14 @@ private fun CameraPreview(
     }
 
     AndroidView(factory = { previewView }, modifier = modifier)
+}
+
+/** Retrouve l'activité même quand le contexte est enveloppé (cas des fenêtres de dialogue). */
+private fun Context.findActivity(): ComponentActivity? {
+    var current: Context? = this
+    while (current is ContextWrapper) {
+        if (current is ComponentActivity) return current
+        current = current.baseContext
+    }
+    return null
 }

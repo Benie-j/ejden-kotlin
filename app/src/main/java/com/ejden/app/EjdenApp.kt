@@ -62,6 +62,7 @@ class EjdenApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        CrashLog.install(this)
         store = FileStore(File(filesDir, "data"))
         products = ProductRepository(store)
         productPrefs = ProductPrefsRepository(store)
