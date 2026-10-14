@@ -20,6 +20,7 @@ import com.ejden.app.data.ProductPrefsRepository
 import com.ejden.app.data.ProductRepository
 import com.ejden.app.data.SaleRepository
 import com.ejden.app.data.SettingsRepository
+import com.ejden.app.data.StockRepository
 import com.ejden.app.data.TextSize
 import com.ejden.app.data.ThemeChoice
 import java.io.File
@@ -40,6 +41,8 @@ class EjdenApp : Application() {
     lateinit var expenses: ExpenseRepository
         private set
     lateinit var cash: CashRepository
+        private set
+    lateinit var stock: StockRepository
         private set
     lateinit var settings: SettingsRepository
         private set
@@ -71,6 +74,7 @@ class EjdenApp : Application() {
         clients = ClientRepository(store, sales, credits)
         expenses = ExpenseRepository(store)
         cash = CashRepository(store, sales, credits, expenses)
+        stock = StockRepository(store, products, sales)
         settings = SettingsRepository(store)
         documents = DocumentRepository(store)
         backup = BackupRepository(store)

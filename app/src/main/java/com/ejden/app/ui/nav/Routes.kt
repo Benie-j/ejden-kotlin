@@ -15,6 +15,7 @@ object Routes {
     const val CASH = "module/caisse"
     const val SETTINGS = "module/parametres"
     const val BACKUP = "module/sauvegarde"
+    const val STOCK = "module/stock"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 

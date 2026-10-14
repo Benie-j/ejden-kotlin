@@ -189,7 +189,7 @@ fun DashboardScreen(nav: NavController) {
                             "produit" + (if (alerts > 1) "s" else "") + " à réapprovisionner"
                         },
                         link = "Voir les alertes",
-                        onLink = { nav.open(Routes.module("stock")) },
+                        onLink = { nav.open(Routes.STOCK + (if (data.stock.lowCount > 0) "?filter=low" else if (data.stock.outCount > 0) "?filter=out" else "?filter=low")) },
                         labelColor = c.warning
                     )
                 }
