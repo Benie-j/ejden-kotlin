@@ -13,7 +13,7 @@ private val LG_RIZ = Product("p1", "Riz", 500.0, 700.0, 10, 2, null, null, null)
 private val LG_HUILE = Product("p2", "Huile", 1000.0, 1400.0, 5, 1, null, null, null)
 private val LG_KONE = Supplier("f1", "Koné Distribution", "07 00", "2026-01-01T10:00:00.000Z")
 
-private class LedgerEnv {
+private class PurchaseLedgerEnv {
     val store = InMemoryStore()
     var clock: Instant = LG_T1
     val products = ProductRepository(store)
@@ -57,7 +57,7 @@ class PurchaseLedgerTest {
 
     @Test
     fun laCaisseSuitLesAchatsEtLesVersements() {
-        val e = LedgerEnv()
+        val e = PurchaseLedgerEnv()
         e.twoPurchases()
         e.payments.recordSupplierPayment("f1", 1200.0, PaymentMethod.Cash)
 
@@ -78,7 +78,7 @@ class PurchaseLedgerTest {
 
     @Test
     fun lesAnnulationsCorrigentLaCaisse() {
-        val e = LedgerEnv()
+        val e = PurchaseLedgerEnv()
         val (_, b) = e.twoPurchases()
         e.payments.recordSupplierPayment("f1", 1200.0, PaymentMethod.Cash)
         val batchId = e.payments.getSupplierPaymentBatches("f1")[0].batchId
@@ -96,7 +96,7 @@ class PurchaseLedgerTest {
 
     @Test
     fun lHistoriqueDuStockContientLesAchats() {
-        val e = LedgerEnv()
+        val e = PurchaseLedgerEnv()
         val (a, _) = e.twoPurchases()
 
         var history = e.stock.getHistory("p1")
