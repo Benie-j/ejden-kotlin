@@ -104,7 +104,7 @@ fun stockErrorMessage(reason: StockFailure): String = when (reason) {
     StockFailure.Storage -> "Impossible d'enregistrer le mouvement."
 }
 
-enum class StockSource { Manual, Sale, SaleCancel, Purchase }
+enum class StockSource { Manual, Sale, SaleCancel, Purchase, PurchaseCancel }
 
 /** Une ligne de l'historique : variation signée, libellé, stock après (si connu). */
 data class StockHistoryEntry(

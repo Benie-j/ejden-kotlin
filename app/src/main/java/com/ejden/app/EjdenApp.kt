@@ -26,6 +26,8 @@ import com.ejden.app.data.SupplierPaymentRepository
 import com.ejden.app.data.SupplierRepository
 import com.ejden.app.data.TextSize
 import com.ejden.app.data.ThemeChoice
+import com.ejden.app.data.purchaseCashMovements
+import com.ejden.app.data.purchaseStockHistory
 import java.io.File
 
 class EjdenApp : Application() {
@@ -82,8 +84,16 @@ class EjdenApp : Application() {
         credits = CreditPaymentRepository(store, sales)
         clients = ClientRepository(store, sales, credits)
         expenses = ExpenseRepository(store)
-        cash = CashRepository(store, sales, credits, expenses)
-        stock = StockRepository(store, products, sales)
+        cash = CashRepository(
+            store, sales, credits, expenses,
+            extraMovements = {
+                purchaseCashMovements(purchases.getPurchases(), supplierPayments.getSupplierPayments())
+            }
+        )
+        stock = StockRepository(
+            store, products, sales,
+            extraHistory = { id -> purchaseStockHistory(purchases.getPurchases(), id) }
+        )
         suppliers = SupplierRepository(store)
         purchases = PurchaseRepository(store, suppliers, products)
         supplierPayments = SupplierPaymentRepository(store, purchases)
