@@ -22,6 +22,7 @@ import com.ejden.app.data.PurchaseRepository
 import com.ejden.app.data.SaleRepository
 import com.ejden.app.data.SettingsRepository
 import com.ejden.app.data.StockRepository
+import com.ejden.app.data.SupplierPaymentRepository
 import com.ejden.app.data.SupplierRepository
 import com.ejden.app.data.TextSize
 import com.ejden.app.data.ThemeChoice
@@ -49,6 +50,8 @@ class EjdenApp : Application() {
     lateinit var suppliers: SupplierRepository
         private set
     lateinit var purchases: PurchaseRepository
+        private set
+    lateinit var supplierPayments: SupplierPaymentRepository
         private set
     lateinit var settings: SettingsRepository
         private set
@@ -83,6 +86,7 @@ class EjdenApp : Application() {
         stock = StockRepository(store, products, sales)
         suppliers = SupplierRepository(store)
         purchases = PurchaseRepository(store, suppliers, products)
+        supplierPayments = SupplierPaymentRepository(store, purchases)
         settings = SettingsRepository(store)
         documents = DocumentRepository(store)
         backup = BackupRepository(store)

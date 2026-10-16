@@ -220,4 +220,56 @@ class PurchaseRepository(
         }
         return RecordPurchaseResult.Ok(purchase)
     }
+
+    /**
+     * Annule un achat : le stock livré est retiré (seulement s'il est encore
+     * en rayon). Refusé si des paiements ont déjà été faits dessus.
+     */
+    fun cancelPurchase(purchaseId: String): CancelPurchaseResult {
+        val all = getPurchases()
+        val index = all.indexOfFirst { it.id == purchaseId }
+        if (index == -1) return CancelPurchaseResult.NotFound
+
+        val purchase = all[index]
+        if (purchase.isCancelled) return CancelPurchaseResult.AlreadyCancelled
+
+        val hasPayments = readSupplierPayments(store)
+            .any { it.purchaseId == purchase.id && !it.isCancelled }
+        if (hasPayments) return CancelPurchaseResult.HasPayments
+
+        val original = products.getProducts()
+        val updated = original.toMutableList()
+        var missing = 0
+
+        for (line in purchase.items) {
+            val position = updated.indexOfFirst { it.id == line.productId }
+            if (position == -1) {
+                missing += 1
+                continue
+            }
+            val product = updated[position]
+            if (product.stock < line.quantity) return CancelPurchaseResult.StockUsed(product.name)
+            updated[position] = product.copy(stock = product.stock - line.quantity)
+        }
+
+        if (!products.saveProducts(updated)) return CancelPurchaseResult.StorageError
+
+        val cancelled = all.toMutableList()
+        cancelled[index] = purchase.copy(cancelledAt = toIso(now()))
+        if (!save(cancelled)) {
+            products.saveProducts(original)
+            return CancelPurchaseResult.StorageError
+        }
+        return CancelPurchaseResult.Ok(missing)
+    }
+}
+
+sealed class CancelPurchaseResult {
+    /** missingProducts : produits supprimés depuis, dont le stock n'a pas pu être retiré. */
+    data class Ok(val missingProducts: Int) : CancelPurchaseResult()
+    data object NotFound : CancelPurchaseResult()
+    data object AlreadyCancelled : CancelPurchaseResult()
+    data object HasPayments : CancelPurchaseResult()
+    data class StockUsed(val productName: String) : CancelPurchaseResult()
+    data object StorageError : CancelPurchaseResult()
 }

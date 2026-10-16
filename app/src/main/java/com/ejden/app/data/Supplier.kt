@@ -31,6 +31,13 @@ fun normalizeSupplier(value: Any?): Supplier? {
     return Supplier(id, name, phone, createdAt)
 }
 
+sealed class DeleteSupplierResult {
+    data object Ok : DeleteSupplierResult()
+    data object NotFound : DeleteSupplierResult()
+    data object HasDebt : DeleteSupplierResult()
+    data object StorageError : DeleteSupplierResult()
+}
+
 class SupplierRepository(private val store: KeyValueStore) {
     companion object {
         const val KEY = "ejden_suppliers"
@@ -63,5 +70,22 @@ class SupplierRepository(private val store: KeyValueStore) {
         return save(suppliers)
     }
 
-    // La suppression (refusee si une dette existe) arrive a l'etape 3.
+    /**
+     * Supprime la fiche. Refusé tant qu'on lui doit de l'argent.
+     * Les achats déjà faits restent dans l'historique (nom conservé).
+     */
+    fun deleteSupplier(supplierId: String): DeleteSupplierResult {
+        val all = getSuppliers()
+        val remaining = all.filter { it.id != supplierId }
+        if (remaining.size == all.size) return DeleteSupplierResult.NotFound
+
+        val debt = computeSupplierDebt(
+            readList(store, PurchaseRepository.KEY, ::normalizePurchase),
+            readSupplierPayments(store),
+            supplierId
+        )
+        if (debt.amount > 0.0) return DeleteSupplierResult.HasDebt
+
+        return if (save(remaining)) DeleteSupplierResult.Ok else DeleteSupplierResult.StorageError
+    }
 }
