@@ -69,7 +69,9 @@ import com.ejden.app.data.toIso
 import com.ejden.app.data.validateSupplierForm
 import com.ejden.app.ui.components.rememberResumeKey
 import com.ejden.app.ui.components.tap
+import com.ejden.app.ui.nav.Routes
 import com.ejden.app.ui.nav.goBack
+import com.ejden.app.ui.nav.open
 import com.ejden.app.ui.theme.Ejden
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -263,7 +265,10 @@ fun SuppliersScreen(nav: NavController) {
             .sortedWith(Comparator { a, b -> collator.compare(a.name, b.name) })
     }
 
-    ModuleScaffold("GESTION", "Fournisseurs", { nav.goBack() }, toast, listState) {
+    ModuleScaffold(
+        "GESTION", "Fournisseurs", { nav.goBack() }, toast, listState,
+        headerAction = { HeaderLink("Achats") { nav.open(Routes.PURCHASES) } }
+    ) {
         item {
             Row(
                 Modifier.padding(bottom = 14.dp).fillMaxWidth().height(IntrinsicSize.Min),
@@ -345,6 +350,7 @@ fun SuppliersScreen(nav: NavController) {
                 onPay = { amount, method -> pay(supplier, amount, method) },
                 onError = { toast.show(it) },
                 onCancelBatch = { cancelBatch(it) },
+                onBuy = { nav.open(Routes.purchasesFor(supplier.id)) },
                 onEdit = { startEdit(supplier) },
                 onDelete = { removeSupplier(supplier) }
             )
@@ -366,6 +372,7 @@ private fun SupplierCard(
     onPay: (Double, PaymentMethod) -> Boolean,
     onError: (String) -> Unit,
     onCancelBatch: (String) -> Unit,
+    onBuy: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -412,6 +419,7 @@ private fun SupplierCard(
             }
 
             Column(Modifier.padding(top = 14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ModuleActionButton("Nouvel achat", ModuleButtonStyle.Normal, onClick = onBuy)
                 ModuleActionButton("Modifier", ModuleButtonStyle.Normal, onClick = onEdit)
                 key(resetToken) {
                     DeleteControl(

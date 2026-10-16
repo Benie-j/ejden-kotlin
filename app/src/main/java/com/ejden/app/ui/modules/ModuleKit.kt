@@ -78,6 +78,7 @@ fun ModuleScaffold(
     toast: ModuleToastState,
     listState: LazyListState = rememberLazyListState(),
     maxWidth: androidx.compose.ui.unit.Dp = 640.dp,
+    headerAction: (@Composable () -> Unit)? = null,
     content: LazyListScope.() -> Unit
 ) {
     val c = Ejden.colors
@@ -89,7 +90,7 @@ fun ModuleScaffold(
             state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 40.dp + navInset)
         ) {
-            item { ModuleHeader(eyebrow, title, onBack) }
+            item { ModuleHeader(eyebrow, title, onBack, headerAction) }
             content()
         }
 
@@ -117,7 +118,12 @@ fun ModuleScaffold(
 }
 
 @Composable
-private fun ModuleHeader(eyebrow: String, title: String, onBack: () -> Unit) {
+private fun ModuleHeader(
+    eyebrow: String,
+    title: String,
+    onBack: () -> Unit,
+    action: (@Composable () -> Unit)? = null
+) {
     val c = Ejden.colors
     val shape = RoundedCornerShape(10.dp)
     Row(
@@ -134,6 +140,10 @@ private fun ModuleHeader(eyebrow: String, title: String, onBack: () -> Unit) {
         Column {
             Text(eyebrow, color = c.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.08.em)
             Text(title, color = c.text, fontSize = 20.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold)
+        }
+        if (action != null) {
+            Spacer(Modifier.weight(1f))
+            action()
         }
     }
 }

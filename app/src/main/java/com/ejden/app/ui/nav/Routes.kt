@@ -17,10 +17,13 @@ object Routes {
     const val BACKUP = "module/sauvegarde"
     const val STOCK = "module/stock"
     const val SUPPLIERS = "module/fournisseurs"
+    const val PURCHASES = "module/achats"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 
     fun productEdit(id: String): String = "produits/modifier/" + android.net.Uri.encode(id)
+
+    fun purchasesFor(supplierId: String): String = PURCHASES + "?supplier=" + android.net.Uri.encode(supplierId)
 
     /** Module pas encore migré : écran « En construction ». */
     fun module(id: String): String = "module/$id"
