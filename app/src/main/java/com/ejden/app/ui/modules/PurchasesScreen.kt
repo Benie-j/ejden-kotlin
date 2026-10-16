@@ -41,11 +41,13 @@ import com.ejden.app.data.JS_WHITESPACE_RUN
 import com.ejden.app.data.Limits
 import com.ejden.app.data.ModuleLimits
 import com.ejden.app.data.Product
+import com.ejden.app.data.Purchase
 import com.ejden.app.data.PurchaseInput
 import com.ejden.app.data.PurchaseLine
 import com.ejden.app.data.PurchaseRejection
 import com.ejden.app.data.RecordPurchaseResult
 import com.ejden.app.data.Supplier
+import com.ejden.app.data.SupplierPayment
 import com.ejden.app.data.cleanAmount
 import com.ejden.app.data.formatMoney
 import com.ejden.app.data.jsTrim
@@ -65,7 +67,12 @@ import java.util.Locale
 
 private const val MAX_LINES = 50
 
-private data class PurchaseFormData(val suppliers: List<Supplier>, val products: List<Product>)
+private data class PurchaseFormData(
+    val suppliers: List<Supplier>,
+    val products: List<Product>,
+    val purchases: List<Purchase>,
+    val payments: List<SupplierPayment>
+)
 
 /** Une ligne du formulaire (produit, quantité, prix) avant enregistrement. */
 private class LineDraft(val id: Int) {
@@ -123,12 +130,17 @@ fun PurchasesScreen(nav: NavController, requestedSupplier: String?) {
     val listState = rememberLazyListState()
     val collator = remember { Collator.getInstance(Locale.FRENCH) }
 
-    var data by remember { mutableStateOf(PurchaseFormData(emptyList(), emptyList())) }
+    var data by remember { mutableStateOf(PurchaseFormData(emptyList(), emptyList(), emptyList(), emptyList())) }
     var loaded by remember { mutableStateOf(false) }
     var reloadKey by remember { mutableIntStateOf(0) }
     LaunchedEffect(resumeKey, reloadKey) {
         data = withContext(Dispatchers.Default) {
-            PurchaseFormData(app.suppliers.getSuppliers(), app.products.getProducts())
+            PurchaseFormData(
+                app.suppliers.getSuppliers(),
+                app.products.getProducts(),
+                app.purchases.getPurchases(),
+                app.supplierPayments.getSupplierPayments()
+            )
         }
         loaded = true
     }
@@ -370,6 +382,8 @@ fun PurchasesScreen(nav: NavController, requestedSupplier: String?) {
                 }
             }
         }
+
+        purchaseHistory(data.purchases, data.payments, loaded, toast) { reloadKey += 1 }
     }
 }
 
