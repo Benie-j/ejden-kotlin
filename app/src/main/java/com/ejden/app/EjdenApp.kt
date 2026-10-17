@@ -10,6 +10,7 @@ import com.ejden.app.data.CashRepository
 import com.ejden.app.data.ClientRepository
 import com.ejden.app.data.CreditPaymentRepository
 import com.ejden.app.data.DashboardRepository
+import com.ejden.app.data.DocumentNumbering
 import com.ejden.app.data.DocumentRepository
 import com.ejden.app.data.ExpenseRepository
 import com.ejden.app.data.FileStore
@@ -21,6 +22,7 @@ import com.ejden.app.data.OrderCompletion
 import com.ejden.app.data.OrderRepository
 import com.ejden.app.data.ProductRepository
 import com.ejden.app.data.PurchaseRepository
+import com.ejden.app.data.QuoteRepository
 import com.ejden.app.data.SaleRepository
 import com.ejden.app.data.SettingsRepository
 import com.ejden.app.data.StockRepository
@@ -60,6 +62,10 @@ class EjdenApp : Application() {
     lateinit var orders: OrderRepository
         private set
     lateinit var orderCompletion: OrderCompletion
+        private set
+    lateinit var documentNumbering: DocumentNumbering
+        private set
+    lateinit var quotes: QuoteRepository
         private set
     lateinit var settings: SettingsRepository
         private set
@@ -105,6 +111,8 @@ class EjdenApp : Application() {
         supplierPayments = SupplierPaymentRepository(store, purchases)
         orders = OrderRepository(store, suppliers, clients, products)
         orderCompletion = OrderCompletion(orders, sales, purchases, products)
+        documentNumbering = DocumentNumbering(store)
+        quotes = QuoteRepository(store, documentNumbering)
         settings = SettingsRepository(store)
         documents = DocumentRepository(store)
         backup = BackupRepository(store)
