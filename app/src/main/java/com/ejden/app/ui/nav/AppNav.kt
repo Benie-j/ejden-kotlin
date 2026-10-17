@@ -36,6 +36,7 @@ import com.ejden.app.ui.modules.ExpensesScreen
 import com.ejden.app.ui.modules.SettingsScreen
 import com.ejden.app.ui.modules.StockScreen
 import com.ejden.app.ui.modules.PurchasesScreen
+import com.ejden.app.ui.modules.OrdersScreen
 import com.ejden.app.ui.modules.SuppliersScreen
 import com.ejden.app.ui.products.ProductFormScreen
 import com.ejden.app.ui.products.ProductsScreen
@@ -132,6 +133,9 @@ fun EjdenNav() {
             )
         ) { entry ->
             EjdenTheme(appearance, mixed = true) { PurchasesScreen(nav, entry.arguments?.getString("supplier")) }
+        }
+        composable(Routes.ORDERS) {
+            EjdenTheme(appearance, mixed = true) { OrdersScreen(nav) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }
