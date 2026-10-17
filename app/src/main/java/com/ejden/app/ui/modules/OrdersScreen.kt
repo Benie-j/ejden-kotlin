@@ -383,7 +383,9 @@ fun OrdersScreen(nav: NavController) {
             }
         }
 
-        // LISTE_DES_COMMANDES (étape suivante)
+        orderList(data.orders, data.products, kind, filterKey, { filterKey = it }, openOrderId, loaded, toast) {
+            reloadKey += 1
+        }
     }
 
     if (showDayPicker) {
