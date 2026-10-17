@@ -17,6 +17,7 @@ import com.ejden.app.data.KeyValueStore
 import com.ejden.app.data.PeriodRepository
 import com.ejden.app.data.PreferencesRepository
 import com.ejden.app.data.ProductPrefsRepository
+import com.ejden.app.data.OrderCompletion
 import com.ejden.app.data.OrderRepository
 import com.ejden.app.data.ProductRepository
 import com.ejden.app.data.PurchaseRepository
@@ -57,6 +58,8 @@ class EjdenApp : Application() {
     lateinit var supplierPayments: SupplierPaymentRepository
         private set
     lateinit var orders: OrderRepository
+        private set
+    lateinit var orderCompletion: OrderCompletion
         private set
     lateinit var settings: SettingsRepository
         private set
@@ -101,6 +104,7 @@ class EjdenApp : Application() {
         purchases = PurchaseRepository(store, suppliers, products)
         supplierPayments = SupplierPaymentRepository(store, purchases)
         orders = OrderRepository(store, suppliers, clients, products)
+        orderCompletion = OrderCompletion(orders, sales, purchases, products)
         settings = SettingsRepository(store)
         documents = DocumentRepository(store)
         backup = BackupRepository(store)
