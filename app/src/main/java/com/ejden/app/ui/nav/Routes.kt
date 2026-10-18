@@ -19,6 +19,7 @@ object Routes {
     const val SUPPLIERS = "module/fournisseurs"
     const val PURCHASES = "module/achats"
     const val ORDERS = "module/commandes"
+    const val QUOTES = "module/devis"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 

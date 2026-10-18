@@ -37,6 +37,7 @@ import com.ejden.app.ui.modules.SettingsScreen
 import com.ejden.app.ui.modules.StockScreen
 import com.ejden.app.ui.modules.PurchasesScreen
 import com.ejden.app.ui.modules.OrdersScreen
+import com.ejden.app.ui.modules.QuotesScreen
 import com.ejden.app.ui.modules.SuppliersScreen
 import com.ejden.app.ui.products.ProductFormScreen
 import com.ejden.app.ui.products.ProductsScreen
@@ -136,6 +137,9 @@ fun EjdenNav() {
         }
         composable(Routes.ORDERS) {
             EjdenTheme(appearance, mixed = true) { OrdersScreen(nav) }
+        }
+        composable(Routes.QUOTES) {
+            EjdenTheme(appearance, mixed = true) { QuotesScreen(nav) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }
