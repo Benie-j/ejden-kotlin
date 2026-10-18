@@ -14,6 +14,7 @@ import com.ejden.app.data.DocumentNumbering
 import com.ejden.app.data.DocumentRepository
 import com.ejden.app.data.ExpenseRepository
 import com.ejden.app.data.FileStore
+import com.ejden.app.data.InvoiceRepository
 import com.ejden.app.data.KeyValueStore
 import com.ejden.app.data.PeriodRepository
 import com.ejden.app.data.PreferencesRepository
@@ -71,6 +72,8 @@ class EjdenApp : Application() {
         private set
     lateinit var documents: DocumentRepository
         private set
+    lateinit var invoices: InvoiceRepository
+        private set
     lateinit var backup: BackupRepository
         private set
     lateinit var appearance: AppearanceRepository
@@ -115,6 +118,7 @@ class EjdenApp : Application() {
         quotes = QuoteRepository(store, documentNumbering)
         settings = SettingsRepository(store)
         documents = DocumentRepository(store)
+        invoices = InvoiceRepository(store, documentNumbering, quotes, documents)
         backup = BackupRepository(store)
         appearance = AppearanceRepository(store)
         preferences = PreferencesRepository(store)

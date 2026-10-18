@@ -20,6 +20,7 @@ object Routes {
     const val PURCHASES = "module/achats"
     const val ORDERS = "module/commandes"
     const val QUOTES = "module/devis"
+    const val INVOICES = "module/factures"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 
