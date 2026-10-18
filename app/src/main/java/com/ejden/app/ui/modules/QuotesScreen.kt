@@ -147,6 +147,7 @@ fun QuotesScreen(nav: NavController) {
 
     var screen by rememberSaveable { mutableStateOf("list") }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var previewId by rememberSaveable { mutableStateOf<String?>(null) }
     var filterKey by rememberSaveable { mutableStateOf("all") }
     var query by rememberSaveable { mutableStateOf("") }
 
@@ -180,7 +181,7 @@ fun QuotesScreen(nav: NavController) {
     var pickerFor by remember { mutableStateOf<String?>(null) }
 
     fun closeEditor() {
-        screen = "list"
+        screen = if (editingId != null && previewId == editingId) "preview" else "list"
         editingId = null
     }
 
@@ -348,11 +349,17 @@ fun QuotesScreen(nav: NavController) {
         }
 
         toast.show(if (existing != null) "Devis modifié." else "Devis " + quote.number + " créé.")
-        closeEditor()
+        previewId = quote.id
+        editingId = null
+        screen = "preview"
         reloadKey += 1
     }
 
     BackHandler(enabled = screen == "editor") { closeEditor() }
+    BackHandler(enabled = screen == "preview") {
+        screen = "list"
+        previewId = null
+    }
     LaunchedEffect(screen) { listState.scrollToItem(0) }
 
     // ----- Liste : résumé, filtre, recherche -----
@@ -411,10 +418,24 @@ fun QuotesScreen(nav: NavController) {
 
     ModuleScaffold(
         "DOCUMENTS", title,
-        { if (screen == "editor") closeEditor() else nav.goBack() },
+        {
+            if (screen == "editor") closeEditor()
+            else if (screen == "preview") { screen = "list"; previewId = null }
+            else nav.goBack()
+        },
         toast, listState
     ) {
-        if (screen == "list") {
+        if (screen == "preview") {
+            quotePreview(
+                quote = data.quotes.firstOrNull { it.id == previewId },
+                loaded = loaded,
+                toast = toast,
+                onEdit = { openEditor(it) },
+                onChanged = { reloadKey += 1 },
+                onGone = { screen = "list"; previewId = null; reloadKey += 1 },
+                onOpen = { previewId = it; reloadKey += 1 }
+            )
+        } else if (screen == "list") {
             if (loaded && (data.shopName.isEmpty() || data.address.isEmpty())) {
                 item { SettingsNotice { nav.open(Routes.SETTINGS) } }
             }
@@ -456,7 +477,8 @@ fun QuotesScreen(nav: NavController) {
 
             items(visible, key = { it.id }) { quote ->
                 QuoteRow(quote, statusOf[quote.id] ?: QuoteDisplayStatus.Draft) {
-                    toast.show("L'aperçu du devis arrive à l'étape suivante.")
+                    previewId = quote.id
+                    screen = "preview"
                 }
             }
         } else {
