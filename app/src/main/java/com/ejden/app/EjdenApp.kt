@@ -15,6 +15,8 @@ import com.ejden.app.data.DocumentRepository
 import com.ejden.app.data.ExpenseRepository
 import com.ejden.app.data.FileStore
 import com.ejden.app.data.InvoiceRepository
+import com.ejden.app.data.FinancePeriodRepository
+import com.ejden.app.data.FinanceRepository
 import com.ejden.app.data.KeyValueStore
 import com.ejden.app.data.PeriodRepository
 import com.ejden.app.data.PreferencesRepository
@@ -74,6 +76,10 @@ class EjdenApp : Application() {
         private set
     lateinit var invoices: InvoiceRepository
         private set
+    lateinit var finance: FinanceRepository
+        private set
+    lateinit var financePeriod: FinancePeriodRepository
+        private set
     lateinit var backup: BackupRepository
         private set
     lateinit var appearance: AppearanceRepository
@@ -120,6 +126,8 @@ class EjdenApp : Application() {
         settings = SettingsRepository(store)
         documents = DocumentRepository(store)
         invoices = InvoiceRepository(store, documentNumbering, quotes, documents)
+        financePeriod = FinancePeriodRepository(store)
+        finance = FinanceRepository(sales, expenses, cash, credits, clients, products, supplierPayments, invoices)
         backup = BackupRepository(store)
         appearance = AppearanceRepository(store)
         preferences = PreferencesRepository(store)
