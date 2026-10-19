@@ -142,8 +142,17 @@ fun EjdenNav() {
         composable(Routes.QUOTES) {
             EjdenTheme(appearance, mixed = true) { QuotesScreen(nav) }
         }
-        composable(Routes.INVOICES) {
-            EjdenTheme(appearance, mixed = true) { InvoicesScreen(nav) }
+        composable(
+            Routes.INVOICES + "?open={open}",
+            arguments = listOf(
+                navArgument("open") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { entry ->
+            EjdenTheme(appearance, mixed = true) { InvoicesScreen(nav, entry.arguments?.getString("open")) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }

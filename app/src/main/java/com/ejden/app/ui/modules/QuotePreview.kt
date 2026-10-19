@@ -52,14 +52,15 @@ internal fun LazyListScope.quotePreview(
     onEdit: (Quote) -> Unit,
     onChanged: () -> Unit,
     onGone: () -> Unit,
-    onOpen: (String) -> Unit
+    onOpen: (String) -> Unit,
+    onOpenInvoice: (String) -> Unit
 ) {
     if (quote == null) {
         if (loaded) item { ModuleEmpty("Devis introuvable", "Ce devis n'existe plus.") }
         return
     }
 
-    item { QuotePreviewContent(quote, toast, onEdit, onChanged, onGone, onOpen) }
+    item { QuotePreviewContent(quote, toast, onEdit, onChanged, onGone, onOpen, onOpenInvoice) }
 }
 
 @Composable
@@ -69,7 +70,8 @@ private fun QuotePreviewContent(
     onEdit: (Quote) -> Unit,
     onChanged: () -> Unit,
     onGone: () -> Unit,
-    onOpen: (String) -> Unit
+    onOpen: (String) -> Unit,
+    onOpenInvoice: (String) -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as EjdenApp
@@ -107,6 +109,24 @@ private fun QuotePreviewContent(
                     if (!shareDocumentText(context, jobName, documentToText(doc, shop))) {
                         toast.show("Impossible de partager sur cet appareil.")
                     }
+                }
+            }
+
+            if (quote.status == QuoteStatus.Accepted && quote.invoiceId == null) {
+                PrimaryButton("Créer la facture à partir de ce devis", Modifier.fillMaxWidth()) {
+                    val invoice = app.invoices.createInvoiceFromQuote(quote.id)
+                    if (invoice != null) {
+                        onOpenInvoice(invoice.id)
+                    } else {
+                        toast.show("Impossible de créer la facture.")
+                    }
+                }
+            }
+
+            val linkedInvoiceId = quote.invoiceId
+            if (linkedInvoiceId != null) {
+                ModuleActionButton("Voir la facture liée", ModuleButtonStyle.Normal, Modifier.fillMaxWidth()) {
+                    onOpenInvoice(linkedInvoiceId)
                 }
             }
 

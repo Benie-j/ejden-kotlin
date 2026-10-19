@@ -35,6 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,7 +45,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ejden.app.EjdenApp
+import com.ejden.app.data.CREDIT_PAYMENT_METHODS
 import com.ejden.app.data.Client
+import com.ejden.app.data.InvoicePayment
+import com.ejden.app.data.InvoicePaymentResult
+import com.ejden.app.data.PaymentMethod
+import com.ejden.app.data.paymentLabel
 import com.ejden.app.data.DocLimits
 import com.ejden.app.data.DocumentLimits
 import com.ejden.app.data.DocumentLine
@@ -85,7 +93,7 @@ private data class InvoicesData(
 private fun invoiceCount(n: Int): String = n.toString() + " facture" + (if (n > 1) "s" else "")
 
 @Composable
-fun InvoicesScreen(nav: NavController) {
+fun InvoicesScreen(nav: NavController, openId: String? = null) {
     val context = LocalContext.current
     val app = context.applicationContext as EjdenApp
     val toast = rememberModuleToast()
@@ -108,9 +116,9 @@ fun InvoicesScreen(nav: NavController) {
         loaded = true
     }
 
-    var screen by rememberSaveable { mutableStateOf("list") }
+    var screen by rememberSaveable { mutableStateOf(if (openId != null) "preview" else "list") }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
-    var previewId by rememberSaveable { mutableStateOf<String?>(null) }
+    var previewId by rememberSaveable { mutableStateOf<String?>(openId) }
     var filterKey by rememberSaveable { mutableStateOf("all") }
     var query by rememberSaveable { mutableStateOf("") }
 
@@ -390,7 +398,8 @@ fun InvoicesScreen(nav: NavController) {
                 onEdit = { openEditor(it) },
                 onChanged = { reloadKey += 1 },
                 onGone = { screen = "list"; previewId = null; reloadKey += 1 },
-                onOpen = { previewId = it; reloadKey += 1 }
+                onOpen = { previewId = it; reloadKey += 1 },
+                onOpenQuote = { nav.open(Routes.QUOTES) }
             )
         } else if (screen == "list") {
             if (loaded && (data.shopName.isEmpty() || data.address.isEmpty())) {
@@ -603,14 +612,15 @@ private fun LazyListScope.invoicePreview(
     onEdit: (Invoice) -> Unit,
     onChanged: () -> Unit,
     onGone: () -> Unit,
-    onOpen: (String) -> Unit
+    onOpen: (String) -> Unit,
+    onOpenQuote: () -> Unit
 ) {
     if (invoice == null) {
         if (loaded) item { ModuleEmpty("Facture introuvable", "Cette facture n'existe plus.") }
         return
     }
 
-    item { InvoicePreviewContent(invoice, toast, onEdit, onChanged, onGone, onOpen) }
+    item { InvoicePreviewContent(invoice, toast, onEdit, onChanged, onGone, onOpen, onOpenQuote) }
 }
 
 @Composable
@@ -620,7 +630,8 @@ private fun InvoicePreviewContent(
     onEdit: (Invoice) -> Unit,
     onChanged: () -> Unit,
     onGone: () -> Unit,
-    onOpen: (String) -> Unit
+    onOpen: (String) -> Unit,
+    onOpenQuote: () -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as EjdenApp
@@ -631,6 +642,7 @@ private fun InvoicePreviewContent(
     val settings = remember(invoice) { app.documents.getSettings() }
     val doc: PrintableDocument = remember(invoice) { invoiceToDocument(invoice, settings, status) }
     val isDraft = invoice.status == InvoiceStatus.Draft
+    val hasQuote = remember(invoice) { invoice.quoteId?.let { app.quotes.getQuoteById(it) } != null }
     val jobName = doc.title + " " + doc.number
 
     Column(Modifier.fillMaxWidth()) {
@@ -672,6 +684,16 @@ private fun InvoicePreviewContent(
                     }
                 }
             }
+
+            if (hasQuote) {
+                ModuleActionButton("Voir le devis d'origine", ModuleButtonStyle.Normal, Modifier.fillMaxWidth()) {
+                    onOpenQuote()
+                }
+            }
+        }
+
+        if (invoice.status == InvoiceStatus.Issued || invoice.payments.isNotEmpty()) {
+            InvoicePaymentsSection(invoice, toast, onChanged)
         }
 
         DocumentSheet(doc, shop, settings)
@@ -842,5 +864,179 @@ private fun InvoiceRow(invoice: Invoice, status: InvoiceDisplayStatus, onClick: 
             Box(Modifier.height(4.dp))
             InvoiceStatusBadge(status)
         }
+    }
+}
+
+/** Paiements : liste, retrait, nouveau paiement, annulation de la facture. */
+@Composable
+private fun InvoicePaymentsSection(invoice: Invoice, toast: ModuleToastState, onChanged: () -> Unit) {
+    val context = LocalContext.current
+    val app = context.applicationContext as EjdenApp
+    val c = Ejden.colors
+    val issued = invoice.status == InvoiceStatus.Issued
+    val remaining = invoice.remaining()
+    var cancelAttempt by remember { mutableIntStateOf(0) }
+
+    ModuleSection("Paiements") {
+        if (invoice.payments.isEmpty()) {
+            Text("Aucun paiement enregistré.", color = c.textSecondary, fontSize = 13.sp)
+        }
+
+        for (payment in invoice.payments) {
+            key(payment.id) {
+                InvoicePaymentRow(payment, issued) {
+                    if (app.invoices.removePayment(invoice.id, payment.id)) {
+                        toast.show("Paiement retiré.")
+                        onChanged()
+                    } else {
+                        toast.show("Impossible de retirer le paiement.")
+                    }
+                }
+            }
+        }
+
+        if (issued && remaining > 0.0) {
+            key(invoice.updatedAt, invoice.payments.size) {
+                InvoicePaymentForm(app.invoices.today(), remaining) { amount, method, day, note ->
+                    val result = app.invoices.addPayment(invoice.id, amount, method, day, note)
+                    val message = when (result) {
+                        InvoicePaymentResult.Ok -> "Paiement enregistré."
+                        InvoicePaymentResult.Invalid -> "Montant ou date invalide."
+                        InvoicePaymentResult.TooMuch -> "Le montant dépasse le reste à payer."
+                        InvoicePaymentResult.NotIssued -> "La facture doit d'abord être émise."
+                        InvoicePaymentResult.NotFound -> "Facture introuvable."
+                        InvoicePaymentResult.Error -> "Impossible d'enregistrer le paiement."
+                    }
+                    toast.show(message)
+                    if (result == InvoicePaymentResult.Ok) onChanged()
+                    result == InvoicePaymentResult.Ok
+                }
+            }
+        }
+
+        if (issued) {
+            Spacer(Modifier.height(14.dp))
+            key(cancelAttempt) {
+                DeleteControl(
+                    label = "Annuler la facture",
+                    question = "Annuler cette facture ? Elle restera dans la liste, marquée « Annulée »."
+                ) {
+                    if (app.invoices.cancelInvoice(invoice.id)) {
+                        toast.show("Facture annulée.")
+                        onChanged()
+                    } else {
+                        toast.show("Retirez d'abord les paiements pour annuler la facture.")
+                        cancelAttempt += 1
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InvoicePaymentRow(payment: InvoicePayment, canRemove: Boolean, onRemove: () -> Unit) {
+    val c = Ejden.colors
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                buildAnnotatedString {
+                    withStyle(SpanStyle(color = c.text, fontWeight = FontWeight.Bold)) {
+                        append(formatMoney(payment.amount))
+                    }
+                    withStyle(SpanStyle(color = c.textSecondary, fontSize = 13.sp)) {
+                        append(
+                            " · " + paymentLabel(payment.method) + " · " + docDayText(payment.date) +
+                                (if (payment.note.isNotEmpty()) " · " + payment.note else "")
+                        )
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                fontSize = 14.sp
+            )
+            if (canRemove) {
+                Text(
+                    "Retirer",
+                    modifier = Modifier.tap(onRemove).padding(horizontal = 4.dp, vertical = 6.dp),
+                    color = c.error,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+        Box(Modifier.fillMaxWidth().height(1.dp).background(c.border))
+    }
+}
+
+@Composable
+private fun InvoicePaymentForm(
+    today: String,
+    remaining: Double,
+    onSubmit: (Double, PaymentMethod, String, String) -> Boolean
+) {
+    var amountText by remember { mutableStateOf(formatPlainNumber(remaining)) }
+    var method by remember { mutableStateOf(PaymentMethod.Cash) }
+    var day by remember { mutableStateOf(today) }
+    var note by remember { mutableStateOf("") }
+    var amountInvalid by remember { mutableStateOf(false) }
+    var picking by remember { mutableStateOf(false) }
+
+    Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.weight(1f)) {
+                ModuleField("Montant (FCFA)") {
+                    ModuleTextField(
+                        amountText,
+                        { amountText = it.filter { ch -> ch.isDigit() }; amountInvalid = false },
+                        "",
+                        keyboardType = KeyboardType.Number,
+                        invalid = amountInvalid,
+                        maxLength = 12
+                    )
+                }
+            }
+            Box(Modifier.weight(1f)) {
+                ModuleField("Mode") {
+                    ModuleSelect(method.id, CREDIT_PAYMENT_METHODS.map { it.id to paymentLabel(it) }) { id ->
+                        val chosen = PaymentMethod.fromId(id)
+                        if (chosen != null) method = chosen
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.weight(1f)) {
+                ModuleField("Date") {
+                    DocDateField(day, false) { picking = true }
+                }
+            }
+            Box(Modifier.weight(1f)) {
+                ModuleField("Référence (facultatif)") {
+                    ModuleTextField(note, { note = it }, "", maxLength = 80)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        PrimaryButton("Enregistrer le paiement", Modifier.fillMaxWidth()) {
+            val amount = Math.round(parseDocNumber(amountText)).toDouble()
+            if (!onSubmit(amount, method, day, note.jsTrim())) amountInvalid = true
+        }
+    }
+
+    if (picking) {
+        DocDayPickerDialog(
+            initialDay = day,
+            onPick = { day = it },
+            onDismiss = { picking = false }
+        )
     }
 }

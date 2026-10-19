@@ -397,6 +397,28 @@ class InvoiceRepository(
         return if (quotes.saveQuote(quote.copy(invoiceId = invoice.id))) invoice else null
     }
 
+    /** Paiements de factures émises : entrées de caisse (date du paiement). */
+    fun cashMovements(): List<CashMovement> {
+        val movements = ArrayList<CashMovement>()
+
+        for (invoice in getInvoices()) {
+            if (invoice.status != InvoiceStatus.Issued) continue
+            for (payment in invoice.payments) {
+                movements.add(
+                    CashMovement(
+                        id = "invoice-payment-" + invoice.id + "-" + payment.id,
+                        source = CashSource.InvoicePayment,
+                        amount = payment.amount,
+                        label = "Facture " + invoice.number + " · " + invoice.clientName,
+                        createdAt = paymentTime(payment),
+                        method = payment.method
+                    )
+                )
+            }
+        }
+        return movements
+    }
+
     /** Moment d'un paiement (pour la caisse et les finances) : le jour saisi fait foi. */
     fun paymentTime(payment: InvoicePayment): String {
         val savedMillis = parseDateMillis(payment.createdAt)

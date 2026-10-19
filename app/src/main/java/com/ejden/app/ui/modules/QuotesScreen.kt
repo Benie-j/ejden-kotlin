@@ -433,7 +433,8 @@ fun QuotesScreen(nav: NavController) {
                 onEdit = { openEditor(it) },
                 onChanged = { reloadKey += 1 },
                 onGone = { screen = "list"; previewId = null; reloadKey += 1 },
-                onOpen = { previewId = it; reloadKey += 1 }
+                onOpen = { previewId = it; reloadKey += 1 },
+                onOpenInvoice = { nav.open(Routes.invoice(it)) }
             )
         } else if (screen == "list") {
             if (loaded && (data.shopName.isEmpty() || data.address.isEmpty())) {

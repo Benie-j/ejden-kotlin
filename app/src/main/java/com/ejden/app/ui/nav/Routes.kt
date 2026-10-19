@@ -28,6 +28,8 @@ object Routes {
 
     fun purchasesFor(supplierId: String): String = PURCHASES + "?supplier=" + android.net.Uri.encode(supplierId)
 
+    fun invoice(id: String): String = INVOICES + "?open=" + android.net.Uri.encode(id)
+
     /** Module pas encore migré : écran « En construction ». */
     fun module(id: String): String = "module/$id"
 }

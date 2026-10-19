@@ -102,7 +102,8 @@ class EjdenApp : Application() {
         cash = CashRepository(
             store, sales, credits, expenses,
             extraMovements = {
-                purchaseCashMovements(purchases.getPurchases(), supplierPayments.getSupplierPayments())
+                purchaseCashMovements(purchases.getPurchases(), supplierPayments.getSupplierPayments()) +
+                    invoices.cashMovements()
             }
         )
         stock = StockRepository(
