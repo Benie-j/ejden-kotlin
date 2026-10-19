@@ -19,11 +19,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ejden.app.EjdenApp
+import com.ejden.app.data.ClientStats
 import com.ejden.app.data.ForecastData
 import com.ejden.app.data.ProductsData
 import com.ejden.app.data.StockData
 import com.ejden.app.data.StatRow
 import com.ejden.app.data.activeStatRows
+import com.ejden.app.data.computeClients
 import com.ejden.app.data.computeForecast
 import com.ejden.app.data.computeProducts
 import com.ejden.app.data.computeStock
@@ -58,6 +60,8 @@ fun StatisticsScreen(nav: NavController) {
     var productsReady by remember { mutableStateOf(false) }
     var stockData by remember { mutableStateOf<StockData?>(null) }
     var stockReady by remember { mutableStateOf(false) }
+    var clientsData by remember { mutableStateOf<ClientStats?>(null) }
+    var clientsReady by remember { mutableStateOf(false) }
 
     LaunchedEffect(resumeKey) {
         val result = withContext(Dispatchers.Default) {
@@ -81,6 +85,13 @@ fun StatisticsScreen(nav: NavController) {
             computeStock(rows, app.products.getProducts(), System.currentTimeMillis())
         }
         stockReady = true
+    }
+    LaunchedEffect(rows, horizon, resumeKey, loaded) {
+        if (!loaded) return@LaunchedEffect
+        clientsData = withContext(Dispatchers.Default) {
+            computeClients(rows, app.clients.getClients(), horizon, System.currentTimeMillis())
+        }
+        clientsReady = true
     }
     LaunchedEffect(tabIndex) { listState.scrollToItem(0) }
 
@@ -117,6 +128,8 @@ fun StatisticsScreen(nav: NavController) {
             productsTab(productsData, loaded && productsReady)
         } else if (tab == StatsTab.Stock) {
             stockTab(stockData, loaded && stockReady)
+        } else if (tab == StatsTab.Clients) {
+            clientsTab(clientsData, loaded && clientsReady)
         } else item {
             ModuleSection(tab.label) {
                 Text(
