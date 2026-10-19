@@ -30,7 +30,7 @@ data class ReportProducts(
     val soldQty: Map<String, Double>
 )
 
-private class ProductAcc(val name: String) {
+private class ReportProductAcc(val name: String) {
     var qty = 0.0
     var amount = 0.0
     val days = HashSet<LocalDate>()
@@ -51,12 +51,12 @@ fun computeReportProducts(
     val categoryOf = products.associate { it.id to (it.category ?: "") }
     val productOf = products.associateBy { it.id }
 
-    val acc = LinkedHashMap<String, ProductAcc>()
+    val acc = LinkedHashMap<String, ReportProductAcc>()
     for (view in views) {
         if (view.cancelled) continue
         val day = statDay(view.at, zone)
         for (line in view.lines) {
-            val e = acc.getOrPut(line.productId) { ProductAcc(line.name) }
+            val e = acc.getOrPut(line.productId) { ReportProductAcc(line.name) }
             e.qty += line.qty
             e.amount += line.amount
             e.days.add(day)
