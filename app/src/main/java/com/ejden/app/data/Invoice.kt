@@ -340,6 +340,27 @@ class InvoiceRepository(
         return saveInvoice(invoice.copy(payments = invoice.payments.filter { it.id != paymentId }))
     }
 
+    /** Copie d'une facture : nouveau brouillon sans numéro ni paiements, dates d'aujourd'hui. */
+    fun duplicateInvoice(invoiceId: String): Invoice? {
+        val source = getInvoiceById(invoiceId) ?: return null
+        val day = today()
+        val stamp = toIso(now())
+
+        val copy = source.copy(
+            id = newId(),
+            number = "",
+            status = InvoiceStatus.Draft,
+            createdAt = stamp,
+            updatedAt = stamp,
+            issueDate = day,
+            dueDate = addDaysToDay(day, documents.getSettings().defaultDueDays),
+            quoteId = null,
+            quoteNumber = "",
+            payments = emptyList()
+        )
+        return if (saveInvoice(copy)) copy else null
+    }
+
     /** Crée un brouillon de facture à partir d'un devis accepté (une seule fois). */
     fun createInvoiceFromQuote(quoteId: String): Invoice? {
         val quote = quotes.getQuoteById(quoteId) ?: return null

@@ -81,7 +81,7 @@ private data class QuotesData(
 )
 
 /** Une ligne du devis en cours de saisie. */
-private class QuoteLineDraft(val id: Int) {
+internal class QuoteLineDraft(val id: Int) {
     var productId by mutableStateOf("")
     var description by mutableStateOf("")
     var unit by mutableStateOf("")
@@ -93,7 +93,7 @@ private class QuoteLineDraft(val id: Int) {
     var priceInvalid by mutableStateOf(false)
 }
 
-private fun readQuoteLine(draft: QuoteLineDraft): DocumentLine = DocumentLine(
+internal fun readQuoteLine(draft: QuoteLineDraft): DocumentLine = DocumentLine(
     productId = draft.productId.ifEmpty { null },
     description = draft.description.jsTrim(),
     unit = draft.unit.jsTrim(),
@@ -102,13 +102,13 @@ private fun readQuoteLine(draft: QuoteLineDraft): DocumentLine = DocumentLine(
     discountPct = parseDocNumber(draft.discount)
 )
 
-private fun quoteLineIsValid(line: DocumentLine): Boolean =
+internal fun quoteLineIsValid(line: DocumentLine): Boolean =
     line.description.isNotEmpty() &&
         line.quantity.isFinite() && line.quantity > 0.0 && line.quantity <= 1_000_000.0 &&
         line.unitPrice.isFinite() && line.unitPrice >= 0.0 && line.unitPrice <= ModuleLimits.AMOUNT_MAX &&
         line.discountPct.isFinite() && line.discountPct >= 0.0 && line.discountPct <= 100.0
 
-private fun draftFromLine(line: DocumentLine, products: List<Product>, id: Int): QuoteLineDraft {
+internal fun draftFromLine(line: DocumentLine, products: List<Product>, id: Int): QuoteLineDraft {
     val draft = QuoteLineDraft(id)
     val linked = line.productId
     draft.productId = if (linked != null && products.any { it.id == linked }) linked else ""
@@ -793,7 +793,7 @@ private fun QuoteRow(quote: Quote, status: QuoteDisplayStatus, onClick: () -> Un
 }
 
 @Composable
-private fun QuoteLineCard(
+internal fun QuoteLineCard(
     draft: QuoteLineDraft,
     productOptions: List<Pair<String, String>>,
     onChooseProduct: (String) -> Unit,
@@ -882,7 +882,7 @@ private fun QuoteLineCard(
 
 /** Totaux du devis en cours (sous-total, remise, TVA, total, acompte). */
 @Composable
-private fun QuoteTotalsBox(totals: DocumentTotals, taxRate: Double, depositPct: Double) {
+internal fun QuoteTotalsBox(totals: DocumentTotals, taxRate: Double, depositPct: Double) {
     val c = Ejden.colors
     val shape = RoundedCornerShape(10.dp)
 
