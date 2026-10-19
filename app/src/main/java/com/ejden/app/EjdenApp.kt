@@ -18,6 +18,7 @@ import com.ejden.app.data.InvoiceRepository
 import com.ejden.app.data.FinancePeriodRepository
 import com.ejden.app.data.FinanceRepository
 import com.ejden.app.data.KeyValueStore
+import com.ejden.app.data.NotificationRepository
 import com.ejden.app.data.PeriodRepository
 import com.ejden.app.data.PreferencesRepository
 import com.ejden.app.data.ProductPrefsRepository
@@ -91,6 +92,9 @@ class EjdenApp : Application() {
     lateinit var dashboard: DashboardRepository
         private set
 
+    lateinit var notifications: NotificationRepository
+        private set
+
     /** Apparence en cours : toute l'application la suit, sans redémarrage. */
     lateinit var appearanceState: MutableState<Appearance>
         private set
@@ -133,6 +137,10 @@ class EjdenApp : Application() {
         preferences = PreferencesRepository(store)
         period = PeriodRepository(store)
         dashboard = DashboardRepository(sales, cash, clients, credits, products)
+        notifications = NotificationRepository(
+            store, products, sales, credits, clients, orders,
+            suppliers, supplierPayments, invoices, quotes
+        )
         appearanceState = mutableStateOf(appearance.get())
     }
 
