@@ -399,7 +399,8 @@ fun InvoicesScreen(nav: NavController, openId: String? = null) {
                 onChanged = { reloadKey += 1 },
                 onGone = { screen = "list"; previewId = null; reloadKey += 1 },
                 onOpen = { previewId = it; reloadKey += 1 },
-                onOpenQuote = { nav.open(Routes.QUOTES) }
+                onOpenQuote = { nav.open(Routes.QUOTES) },
+                onOpenReceipt = { nav.open(Routes.receipt(it)) }
             )
         } else if (screen == "list") {
             if (loaded && (data.shopName.isEmpty() || data.address.isEmpty())) {
@@ -613,14 +614,15 @@ private fun LazyListScope.invoicePreview(
     onChanged: () -> Unit,
     onGone: () -> Unit,
     onOpen: (String) -> Unit,
-    onOpenQuote: () -> Unit
+    onOpenQuote: () -> Unit,
+    onOpenReceipt: (String) -> Unit
 ) {
     if (invoice == null) {
         if (loaded) item { ModuleEmpty("Facture introuvable", "Cette facture n'existe plus.") }
         return
     }
 
-    item { InvoicePreviewContent(invoice, toast, onEdit, onChanged, onGone, onOpen, onOpenQuote) }
+    item { InvoicePreviewContent(invoice, toast, onEdit, onChanged, onGone, onOpen, onOpenQuote, onOpenReceipt) }
 }
 
 @Composable
@@ -631,7 +633,8 @@ private fun InvoicePreviewContent(
     onChanged: () -> Unit,
     onGone: () -> Unit,
     onOpen: (String) -> Unit,
-    onOpenQuote: () -> Unit
+    onOpenQuote: () -> Unit,
+    onOpenReceipt: (String) -> Unit
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as EjdenApp
@@ -693,7 +696,7 @@ private fun InvoicePreviewContent(
         }
 
         if (invoice.status == InvoiceStatus.Issued || invoice.payments.isNotEmpty()) {
-            InvoicePaymentsSection(invoice, toast, onChanged)
+            InvoicePaymentsSection(invoice, toast, onChanged, onOpenReceipt)
         }
 
         DocumentSheet(doc, shop, settings)
@@ -869,7 +872,12 @@ private fun InvoiceRow(invoice: Invoice, status: InvoiceDisplayStatus, onClick: 
 
 /** Paiements : liste, retrait, nouveau paiement, annulation de la facture. */
 @Composable
-private fun InvoicePaymentsSection(invoice: Invoice, toast: ModuleToastState, onChanged: () -> Unit) {
+private fun InvoicePaymentsSection(
+    invoice: Invoice,
+    toast: ModuleToastState,
+    onChanged: () -> Unit,
+    onOpenReceipt: (String) -> Unit
+) {
     val context = LocalContext.current
     val app = context.applicationContext as EjdenApp
     val c = Ejden.colors
@@ -884,7 +892,12 @@ private fun InvoicePaymentsSection(invoice: Invoice, toast: ModuleToastState, on
 
         for (payment in invoice.payments) {
             key(payment.id) {
-                InvoicePaymentRow(payment, issued) {
+                InvoicePaymentRow(
+                    payment = payment,
+                    canRemove = issued,
+                    showReceipt = issued || invoice.status == InvoiceStatus.Cancelled,
+                    onReceipt = { onOpenReceipt(invoice.id + ":" + payment.id) }
+                ) {
                     if (app.invoices.removePayment(invoice.id, payment.id)) {
                         toast.show("Paiement retiré.")
                         onChanged()
@@ -935,7 +948,13 @@ private fun InvoicePaymentsSection(invoice: Invoice, toast: ModuleToastState, on
 }
 
 @Composable
-private fun InvoicePaymentRow(payment: InvoicePayment, canRemove: Boolean, onRemove: () -> Unit) {
+private fun InvoicePaymentRow(
+    payment: InvoicePayment,
+    canRemove: Boolean,
+    showReceipt: Boolean,
+    onReceipt: () -> Unit,
+    onRemove: () -> Unit
+) {
     val c = Ejden.colors
     Column(Modifier.fillMaxWidth()) {
         Row(
@@ -965,6 +984,18 @@ private fun InvoicePaymentRow(payment: InvoicePayment, canRemove: Boolean, onRem
                     color = c.error,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
+                )
+            }
+            if (showReceipt) {
+                Text(
+                    "Reçu",
+                    modifier = Modifier
+                        .border(1.dp, c.primary, RoundedCornerShape(10.dp))
+                        .tap(onReceipt)
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    color = c.primary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

@@ -21,6 +21,7 @@ object Routes {
     const val ORDERS = "module/commandes"
     const val QUOTES = "module/devis"
     const val INVOICES = "module/factures"
+    const val RECEIPTS = "module/recus"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 
@@ -29,6 +30,8 @@ object Routes {
     fun purchasesFor(supplierId: String): String = PURCHASES + "?supplier=" + android.net.Uri.encode(supplierId)
 
     fun invoice(id: String): String = INVOICES + "?open=" + android.net.Uri.encode(id)
+
+    fun receipt(key: String): String = RECEIPTS + "?open=" + android.net.Uri.encode(key)
 
     /** Module pas encore migré : écran « En construction ». */
     fun module(id: String): String = "module/$id"

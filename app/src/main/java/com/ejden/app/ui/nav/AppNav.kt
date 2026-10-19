@@ -34,6 +34,7 @@ import com.ejden.app.ui.modules.ClientsScreen
 import com.ejden.app.ui.modules.CreditsScreen
 import com.ejden.app.ui.modules.ExpensesScreen
 import com.ejden.app.ui.modules.InvoicesScreen
+import com.ejden.app.ui.modules.ReceiptsScreen
 import com.ejden.app.ui.modules.SettingsScreen
 import com.ejden.app.ui.modules.StockScreen
 import com.ejden.app.ui.modules.PurchasesScreen
@@ -153,6 +154,18 @@ fun EjdenNav() {
             )
         ) { entry ->
             EjdenTheme(appearance, mixed = true) { InvoicesScreen(nav, entry.arguments?.getString("open")) }
+        }
+        composable(
+            Routes.RECEIPTS + "?open={open}",
+            arguments = listOf(
+                navArgument("open") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { entry ->
+            EjdenTheme(appearance, mixed = true) { ReceiptsScreen(nav, entry.arguments?.getString("open")) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }
