@@ -19,8 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ejden.app.EjdenApp
+import com.ejden.app.data.ForecastData
 import com.ejden.app.data.StatRow
 import com.ejden.app.data.activeStatRows
+import com.ejden.app.data.computeForecast
 import com.ejden.app.ui.components.rememberResumeKey
 import com.ejden.app.ui.components.tap
 import com.ejden.app.ui.nav.goBack
@@ -47,9 +49,15 @@ fun StatisticsScreen(nav: NavController) {
     var horizon by rememberSaveable { mutableIntStateOf(90) }
     var rows by remember { mutableStateOf<List<StatRow>>(emptyList()) }
     var loaded by remember { mutableStateOf(false) }
+    var forecast by remember { mutableStateOf<ForecastData?>(null) }
 
     LaunchedEffect(resumeKey) {
-        rows = withContext(Dispatchers.Default) { activeStatRows(app.sales.getSales()) }
+        val result = withContext(Dispatchers.Default) {
+            val statRows = activeStatRows(app.sales.getSales())
+            statRows to computeForecast(statRows, app.expenses.getExpenses(), System.currentTimeMillis())
+        }
+        rows = result.first
+        forecast = result.second
         loaded = true
     }
     LaunchedEffect(tabIndex) { listState.scrollToItem(0) }
@@ -80,7 +88,9 @@ fun StatisticsScreen(nav: NavController) {
             item { StatsHorizonBar(horizon) { horizon = it } }
         }
 
-        item {
+        if (tab == StatsTab.Forecast) {
+            forecastTab(forecast, loaded)
+        } else item {
             ModuleSection(tab.label) {
                 Text(
                     if (loaded) "${rows.size} ventes analysées (période : $horizon jours)" else "Chargement…",
