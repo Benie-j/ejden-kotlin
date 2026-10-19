@@ -24,6 +24,7 @@ object Routes {
     const val INVOICES = "module/factures"
     const val RECEIPTS = "module/recus"
     const val FINANCES = "module/finances"
+    const val STATS = "module/statistiques"
     const val PRODUCT_ADD = "produits/ajouter"
     const val PRODUCT_EDIT = "produits/modifier/{id}"
 

@@ -38,6 +38,7 @@ import com.ejden.app.ui.modules.ReceiptsScreen
 import com.ejden.app.ui.modules.FinancesScreen
 import com.ejden.app.ui.modules.NotificationsScreen
 import com.ejden.app.ui.modules.SettingsScreen
+import com.ejden.app.ui.modules.StatisticsScreen
 import com.ejden.app.ui.modules.StockScreen
 import com.ejden.app.ui.modules.PurchasesScreen
 import com.ejden.app.ui.modules.OrdersScreen
@@ -174,6 +175,9 @@ fun EjdenNav() {
         }
         composable(Routes.FINANCES) {
             EjdenTheme(appearance, mixed = true) { FinancesScreen(nav) }
+        }
+        composable(Routes.STATS) {
+            EjdenTheme(appearance, mixed = true) { StatisticsScreen(nav) }
         }
         composable(Routes.SALES) {
             EjdenTheme(appearance, page = true) { SalesScreen(nav) }
