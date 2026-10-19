@@ -14,6 +14,7 @@ object Routes {
     const val EXPENSES = "module/depenses"
     const val CASH = "module/caisse"
     const val SETTINGS = "module/parametres"
+    const val NOTIFICATIONS = "module/notifications"
     const val BACKUP = "module/sauvegarde"
     const val STOCK = "module/stock"
     const val SUPPLIERS = "module/fournisseurs"
