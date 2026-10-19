@@ -90,6 +90,7 @@ fun StatisticsScreen(nav: NavController) {
 
         if (tab == StatsTab.Forecast) {
             forecastTab(forecast, loaded)
+            forecastTabEnd(forecast)
         } else item {
             ModuleSection(tab.label) {
                 Text(
