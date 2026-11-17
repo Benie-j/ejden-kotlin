@@ -17,6 +17,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -181,7 +182,20 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
     var photo by remember { mutableStateOf(editing?.photo) }
 
     val focus = remember { ProductField.entries.associateWith { FocusRequester() } }
-    val categories = remember(all) { getCategories(all) }
+    var known by remember { mutableStateOf(all) }
+    val categories = remember(known) { getCategories(known) }
+
+    // Nouveau produit : le nom est prêt à être saisi.
+    LaunchedEffect(Unit) {
+        if (!isEdit) {
+            delay(300)
+            try {
+                focus[ProductField.Name]?.requestFocus()
+            } catch (e: IllegalStateException) {
+                // champ pas encore affiché
+            }
+        }
+    }
 
     // Message temporaire.
     var noticeText by remember { mutableStateOf("") }
@@ -254,11 +268,11 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
         }
     }
 
-    fun submit() {
+    fun submit(another: Boolean = false) {
         if (saving) return
         val input = ProductFormInput(name, purchase, sale, stock, threshold, barcode, category, photo)
         val result = if (editing == null) {
-            validateNewProduct(input, all)
+            validateNewProduct(input, known)
         } else {
             validateEditedProduct(input, editing, all)
         }
@@ -281,6 +295,17 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
                         if (editing == null) "Enregistrement impossible : la mémoire est pleine."
                         else "Impossible d'enregistrer les modifications."
                     )
+                } else if (another && editing == null) {
+                    notice("Produit enregistré. Ajoutez le suivant.")
+                    known = app.products.getProducts()
+                    name = ""
+                    purchase = ""
+                    sale = ""
+                    stock = ""
+                    barcode = ""
+                    photo = null
+                    saving = false
+                    focus[ProductField.Name]?.requestFocus()
                 } else {
                     notice(if (editing == null) "Produit enregistré avec succès." else "Produit modifié avec succès.")
                     exitDelay = 800L
@@ -289,7 +314,7 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
         }
     }
 
-    val scanner = rememberFormScanner(all, editing?.id, { barcode = it }, { notice(it) })
+    val scanner = rememberFormScanner(known, editing?.id, { barcode = it }, { notice(it) })
     var confirmDelete by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize().imePadding()) {
@@ -323,7 +348,8 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
                                 name, { name = it },
                                 placeholder = if (isEdit) "Nom du produit" else "Ex. Coca-Cola 50 cl",
                                 edit = isEdit,
-                                focusRequester = focus[ProductField.Name]
+                                focusRequester = focus[ProductField.Name],
+                                onAction = { focus[ProductField.Purchase]?.requestFocus() }
                             )
                         }
                         Spacer(Modifier.height(if (isEdit) 18.dp else 16.dp))
@@ -395,7 +421,9 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
                                 edit = isEdit,
                                 keyboardType = KeyboardType.Number,
                                 digitsOnly = true,
-                                focusRequester = focus[ProductField.Stock]
+                                focusRequester = focus[ProductField.Stock],
+                                imeAction = ImeAction.Done,
+                                onAction = { submit() }
                             )
                         }
                         Spacer(Modifier.height(if (isEdit) 18.dp else 16.dp))
@@ -437,16 +465,11 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
                         }
                     }
 
-                    Column(
-                        Modifier.padding(top = if (isEdit) 0.dp else 4.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        FormButton("Annuler", filled = false, glow = false) { nav.goBack() }
-                        FormButton(
-                            if (isEdit) "Enregistrer les modifications" else "Enregistrer le produit",
-                            filled = true,
-                            glow = !isEdit
-                        ) { submit() }
+                    if (isEdit) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            FormButton("Annuler", filled = false, glow = false) { nav.goBack() }
+                            FormButton("Enregistrer les modifications", filled = true, glow = false) { submit() }
+                        }
                     }
 
                     if (editing != null) {
@@ -468,6 +491,23 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
                     }
 
                     Spacer(Modifier.height((if (isEdit) 28.dp else 32.dp) + navInset))
+                }
+            }
+
+            if (!isEdit) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(c.surface)
+                        .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(Modifier.weight(1f)) {
+                        FormButton("Enregistrer", filled = true, glow = false) { submit() }
+                    }
+                    Box(Modifier.weight(1f)) {
+                        FormButton("Enregistrer + nouveau", filled = false, glow = false) { submit(another = true) }
+                    }
                 }
             }
         }
@@ -674,7 +714,9 @@ private fun FormInput(
     digitsOnly: Boolean = false,
     suffix: String? = null,
     maxLength: Int? = null,
-    focusRequester: FocusRequester? = null
+    focusRequester: FocusRequester? = null,
+    imeAction: ImeAction = ImeAction.Next,
+    onAction: (() -> Unit)? = null
 ) {
     val c = Ejden.colors
     val shape = RoundedCornerShape(12.dp)
@@ -706,7 +748,10 @@ private fun FormInput(
             singleLine = true,
             textStyle = TextStyle(color = c.text, fontSize = 15.sp),
             cursorBrush = SolidColor(c.primary),
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+            keyboardActions = KeyboardActions(onAny = {
+                if (onAction != null) onAction() else defaultKeyboardAction(imeAction)
+            }),
             decorationBox = { inner ->
                 Box(contentAlignment = Alignment.CenterStart) {
                     if (value.isEmpty()) {
