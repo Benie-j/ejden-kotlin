@@ -271,8 +271,8 @@ fun SalesScreen(nav: NavController) {
 
     // Focus sur le montant à l'ouverture de l'encaissement.
     val scanner = rememberSalesScanner({ app.products.getProducts() }, { cart }, { products = it }, { applyCart(it) }, { notice(it) })
-    LaunchedEffect(checkoutOpen) {
-        if (checkoutOpen) {
+    LaunchedEffect(checkoutOpen, method) {
+        if (checkoutOpen && method == PaymentMethod.Credit) {
             delay(300)
             try {
                 amountFocus.requestFocus()
@@ -379,7 +379,8 @@ fun SalesScreen(nav: NavController) {
         CartBar(
             count = quantity,
             total = total,
-            onClick = { cartOpen = true },
+            onCart = { cartOpen = true },
+            onPay = { openCheckout() },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
 
@@ -652,7 +653,11 @@ private fun ProductRow(product: Product, onAdd: () -> Unit) {
 }
 
 @Composable
-private fun CartBar(count: Int, total: Double, onClick: () -> Unit, modifier: Modifier) {
+private fun CartBar(
+    count: Int, total: Double,
+    onCart: () -> Unit, onPay: () -> Unit,
+    modifier: Modifier
+) {
     val c = Ejden.colors
     val navInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val shape = RoundedCornerShape(18.dp)
@@ -663,14 +668,17 @@ private fun CartBar(count: Int, total: Double, onClick: () -> Unit, modifier: Mo
             .padding(start = 12.dp, end = 12.dp, bottom = 12.dp + navInset)
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .pressable(0.985f, onClick)
             .shadow(14.dp, shape, ambientColor = glow, spotColor = glow)
             .background(c.primary, shape)
             .padding(horizontal = 13.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            Modifier.weight(1f).pressable(0.97f, onCart),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             Box(
                 Modifier.size(42.dp).background(Color.White.copy(alpha = 0.14f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
@@ -683,8 +691,15 @@ private fun CartBar(count: Int, total: Double, onClick: () -> Unit, modifier: Mo
                 Text(pluralize(count, "article"), color = Color.White.copy(alpha = 0.78f), fontSize = 11.sp)
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            Text(formatMoney(total), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight(800))
+        Row(
+            Modifier
+                .pressable(0.96f, onPay)
+                .background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(14.dp))
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            Text("Encaisser · " + formatMoney(total), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight(800))
             StrokeIcon(AppIcons.Arrow, Color.White, 18.dp)
         }
     }
