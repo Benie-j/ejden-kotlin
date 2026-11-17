@@ -185,6 +185,17 @@ fun CashScreen(nav: NavController, requested: String?) {
                         keyboardType = KeyboardType.Number, invalid = amountInvalid, focusRequester = amountFocus
                     )
                 }
+                val typedAmount = amount.toDoubleOrNull()
+                if (typedAmount != null && typedAmount > 0.0) {
+                    val after = summary.balance + (if (isIn) typedAmount else -typedAmount)
+                    Text(
+                        "Solde après : " + formatMoney(after),
+                        modifier = Modifier.padding(top = 6.dp),
+                        color = if (after < 0.0) c.error else c.textSecondary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Spacer(Modifier.height(12.dp))
                 ModuleField("Motif (facultatif)") {
                     ModuleTextField(

@@ -410,6 +410,21 @@ private fun ProductForm(nav: NavController, app: EjdenApp, all: List<Product>, e
                                 suffix = "FCFA",
                                 focusRequester = focus[ProductField.Sale]
                             )
+                            val buyPrice = purchase.toLongOrNull()
+                            val sellPrice = sale.toLongOrNull()
+                            if (buyPrice != null && sellPrice != null && sellPrice > 0L) {
+                                val gain = sellPrice - buyPrice
+                                val gainText = com.ejden.app.data.formatMoney(kotlin.math.abs(gain).toDouble())
+                                Text(
+                                    if (gain < 0L) "Vente à perte : -" + gainText
+                                    else "Marge : " + gainText +
+                                        (if (buyPrice > 0L) " (" + (gain * 100L / buyPrice) + " %)" else ""),
+                                    modifier = Modifier.padding(top = 7.dp),
+                                    color = if (gain < 0L) c.error else c.success,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
 

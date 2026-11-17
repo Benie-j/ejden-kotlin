@@ -324,6 +324,21 @@ private fun MovementForm(product: Product, type: StockMovementType, onSubmit: (D
                 focusRequester = focus
             )
         }
+        val typedQuantity = quantity.toIntOrNull()
+        if (typedQuantity != null) {
+            val after = when (type) {
+                StockMovementType.In -> product.stock + typedQuantity
+                StockMovementType.Out -> product.stock - typedQuantity
+                StockMovementType.Adjust -> typedQuantity
+            }
+            Text(
+                "Stock : " + product.stock + " → " + after,
+                modifier = Modifier.padding(top = 6.dp),
+                color = if (after < 0) c.error else c.textSecondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
         Spacer(Modifier.height(12.dp))
         ModuleField("Motif") {
             ModuleSelect(reason, STOCK_REASONS.getValue(type).map { it to it }) { reason = it }

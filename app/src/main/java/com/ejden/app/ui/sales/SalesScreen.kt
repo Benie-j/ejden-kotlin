@@ -368,7 +368,9 @@ fun SalesScreen(nav: NavController) {
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             for (product in filtered) {
-                                ProductRow(product) { applyCart(addToCart(cart, products, product.id)) }
+                                ProductRow(product, cart.firstOrNull { it.product.id == product.id }?.quantity ?: 0) {
+                                    applyCart(addToCart(cart, products, product.id))
+                                }
                             }
                         }
                     }
@@ -589,7 +591,7 @@ private fun SearchArea(query: String, onQuery: (String) -> Unit, onScan: () -> U
 }
 
 @Composable
-private fun ProductRow(product: Product, onAdd: () -> Unit) {
+private fun ProductRow(product: Product, inCart: Int, onAdd: () -> Unit) {
     val c = Ejden.colors
     val shape = RoundedCornerShape(16.dp)
     val status = stockStatusOf(product)
@@ -636,7 +638,10 @@ private fun ProductRow(product: Product, onAdd: () -> Unit) {
                 fontWeight = if (status == StockStatus.Normal) FontWeight.Normal else FontWeight(650)
             )
             Spacer(Modifier.height(4.dp))
-            Text(formatMoney(product.salePrice), color = c.primary, fontSize = 13.sp, fontWeight = FontWeight(750))
+            Text(
+                formatMoney(product.salePrice) + (if (inCart > 0) "  ·  × " + inCart + " au panier" else ""),
+                color = c.primary, fontSize = 13.sp, fontWeight = FontWeight(750)
+            )
         }
 
         val enabled = product.stock > 0
