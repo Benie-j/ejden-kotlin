@@ -18,6 +18,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.ejden.app.data.Appearance
+import com.ejden.app.data.TEAM_OWNER_ID
+import com.ejden.app.data.TeamPermission
+import com.ejden.app.data.ownerDisplayName
+import com.ejden.app.ui.modules.ModuleActionButton
+import com.ejden.app.ui.modules.ModuleButtonStyle
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -87,31 +103,47 @@ fun EjdenNav() {
             EjdenTheme(appearance) { DashboardScreen(nav) }
         }
         composable(Routes.PRODUCTS) {
-            EjdenTheme(appearance, page = true) { ProductsScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.ViewProducts) {
+                EjdenTheme(appearance, page = true) { ProductsScreen(nav) }
+            }
         }
         composable(Routes.HISTORY) {
-            EjdenTheme(appearance, mixed = true) { HistoryScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.Sell) {
+                EjdenTheme(appearance, mixed = true) { HistoryScreen(nav) }
+            }
         }
         composable(Routes.CLIENTS + "?new={new}", arguments = newArg) { entry ->
             val focusNew = entry.arguments?.getString("new") != null
-            EjdenTheme(appearance, mixed = true) { ClientsScreen(nav, focusNew) }
+            Guard(app, nav, appearance, TeamPermission.Sell) {
+                EjdenTheme(appearance, mixed = true) { ClientsScreen(nav, focusNew) }
+            }
         }
         composable(Routes.CREDITS) {
-            EjdenTheme(appearance, mixed = true) { CreditsScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.Finances) {
+                EjdenTheme(appearance, mixed = true) { CreditsScreen(nav) }
+            }
         }
         composable(Routes.EXPENSES + "?new={new}", arguments = newArg) { entry ->
             val focusNew = entry.arguments?.getString("new") != null
-            EjdenTheme(appearance, mixed = true) { ExpensesScreen(nav, focusNew) }
+            Guard(app, nav, appearance, TeamPermission.Finances) {
+                EjdenTheme(appearance, mixed = true) { ExpensesScreen(nav, focusNew) }
+            }
         }
         composable(Routes.CASH + "?new={new}", arguments = newArg) { entry ->
             val requested = entry.arguments?.getString("new")
-            EjdenTheme(appearance, mixed = true) { CashScreen(nav, requested) }
+            Guard(app, nav, appearance, TeamPermission.Finances) {
+                EjdenTheme(appearance, mixed = true) { CashScreen(nav, requested) }
+            }
         }
         composable(Routes.SETTINGS) {
-            EjdenTheme(appearance, mixed = true) { SettingsScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.Settings) {
+                EjdenTheme(appearance, mixed = true) { SettingsScreen(nav) }
+            }
         }
         composable(Routes.BACKUP) {
-            EjdenTheme(appearance, mixed = true) { BackupScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.Settings) {
+                EjdenTheme(appearance, mixed = true) { BackupScreen(nav) }
+            }
         }
         composable(
             Routes.STOCK + "?filter={filter}",
@@ -123,10 +155,14 @@ fun EjdenNav() {
                 }
             )
         ) { entry ->
-            EjdenTheme(appearance, mixed = true) { StockScreen(nav, entry.arguments?.getString("filter")) }
+            Guard(app, nav, appearance, TeamPermission.ManageStock) {
+                EjdenTheme(appearance, mixed = true) { StockScreen(nav, entry.arguments?.getString("filter")) }
+            }
         }
         composable(Routes.SUPPLIERS) {
-            EjdenTheme(appearance, mixed = true) { SuppliersScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.ManageStock) {
+                EjdenTheme(appearance, mixed = true) { SuppliersScreen(nav) }
+            }
         }
         composable(
             Routes.PURCHASES + "?supplier={supplier}",
@@ -138,13 +174,19 @@ fun EjdenNav() {
                 }
             )
         ) { entry ->
-            EjdenTheme(appearance, mixed = true) { PurchasesScreen(nav, entry.arguments?.getString("supplier")) }
+            Guard(app, nav, appearance, TeamPermission.ManageStock) {
+                EjdenTheme(appearance, mixed = true) { PurchasesScreen(nav, entry.arguments?.getString("supplier")) }
+            }
         }
         composable(Routes.ORDERS) {
-            EjdenTheme(appearance, mixed = true) { OrdersScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.ManageStock) {
+                EjdenTheme(appearance, mixed = true) { OrdersScreen(nav) }
+            }
         }
         composable(Routes.QUOTES) {
-            EjdenTheme(appearance, mixed = true) { QuotesScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.Sell) {
+                EjdenTheme(appearance, mixed = true) { QuotesScreen(nav) }
+            }
         }
         composable(
             Routes.INVOICES + "?open={open}",
@@ -156,7 +198,9 @@ fun EjdenNav() {
                 }
             )
         ) { entry ->
-            EjdenTheme(appearance, mixed = true) { InvoicesScreen(nav, entry.arguments?.getString("open")) }
+            Guard(app, nav, appearance, TeamPermission.Sell) {
+                EjdenTheme(appearance, mixed = true) { InvoicesScreen(nav, entry.arguments?.getString("open")) }
+            }
         }
         composable(
             Routes.RECEIPTS + "?open={open}",
@@ -168,29 +212,41 @@ fun EjdenNav() {
                 }
             )
         ) { entry ->
-            EjdenTheme(appearance, mixed = true) { ReceiptsScreen(nav, entry.arguments?.getString("open")) }
+            Guard(app, nav, appearance, TeamPermission.Sell) {
+                EjdenTheme(appearance, mixed = true) { ReceiptsScreen(nav, entry.arguments?.getString("open")) }
+            }
         }
         composable(Routes.NOTIFICATIONS) {
             EjdenTheme(appearance, mixed = true) { NotificationsScreen(nav) }
         }
         composable(Routes.FINANCES) {
-            EjdenTheme(appearance, mixed = true) { FinancesScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.Finances) {
+                EjdenTheme(appearance, mixed = true) { FinancesScreen(nav) }
+            }
         }
         composable(Routes.STATS) {
-            EjdenTheme(appearance, mixed = true) { StatisticsScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.Reports) {
+                EjdenTheme(appearance, mixed = true) { StatisticsScreen(nav) }
+            }
         }
         composable(Routes.SALES) {
-            EjdenTheme(appearance, page = true) { SalesScreen(nav) }
+            Guard(app, nav, appearance, TeamPermission.Sell) {
+                EjdenTheme(appearance, page = true) { SalesScreen(nav) }
+            }
         }
         composable(Routes.PRODUCT_ADD) {
-            EjdenTheme(appearance, page = true) { ProductFormScreen(nav, null) }
+            Guard(app, nav, appearance, TeamPermission.ManageProducts) {
+                EjdenTheme(appearance, page = true) { ProductFormScreen(nav, null) }
+            }
         }
         composable(
             Routes.PRODUCT_EDIT,
             arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { entry ->
             val id = entry.arguments?.getString("id") ?: ""
-            EjdenTheme(appearance, page = true) { ProductFormScreen(nav, id) }
+            Guard(app, nav, appearance, TeamPermission.ManageProducts) {
+                EjdenTheme(appearance, page = true) { ProductFormScreen(nav, id) }
+            }
         }
         composable(
             Routes.MODULE,
@@ -198,6 +254,57 @@ fun EjdenNav() {
         ) { entry ->
             val id = entry.arguments?.getString("id") ?: ""
             EjdenTheme(appearance, page = true) { ModulePlaceholder(nav, moduleTitle(id)) }
+        }
+    }
+}
+
+/** N'ouvre l'écran que si l'utilisateur actif en a le droit. */
+@Composable
+private fun Guard(
+    app: EjdenApp,
+    nav: NavController,
+    appearance: Appearance,
+    permission: TeamPermission,
+    content: @Composable () -> Unit
+) {
+    var tick by remember { mutableIntStateOf(0) }
+    val allowed = remember(tick) { app.team.can(permission) }
+    if (allowed) {
+        content()
+    } else {
+        EjdenTheme(appearance, page = true) { AccessDenied(app, nav) { tick += 1 } }
+    }
+}
+
+@Composable
+private fun AccessDenied(app: EjdenApp, nav: NavController, onSwitched: () -> Unit) {
+    val c = Ejden.colors
+    val role = app.team.getActiveRole()
+    val owner = app.settings.getUser()
+    val users = listOf(
+        TEAM_OWNER_ID to (ownerDisplayName(owner.firstName, owner.lastName) + " · Administrateur")
+    ) + app.team.getMembers().map { it.id to (it.name + " · " + it.role.label) }
+
+    Column(Modifier.fillMaxSize().background(c.background).statusBarsPadding()) {
+        TextButton(onClick = { nav.goBack() }) { Text("← Retour") }
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Accès non autorisé", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Le rôle « " + role.label + " » ne permet pas d'ouvrir cet écran. Choisissez un autre utilisateur pour continuer.",
+                color = c.textSecondary,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(20.dp))
+            for ((id, label) in users) {
+                ModuleActionButton(label, ModuleButtonStyle.Normal, Modifier.padding(bottom = 8.dp)) {
+                    if (app.team.setActive(id)) onSwitched()
+                }
+            }
         }
     }
 }

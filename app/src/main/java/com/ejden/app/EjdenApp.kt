@@ -32,6 +32,7 @@ import com.ejden.app.data.SettingsRepository
 import com.ejden.app.data.StockRepository
 import com.ejden.app.data.SupplierPaymentRepository
 import com.ejden.app.data.SupplierRepository
+import com.ejden.app.data.TeamRepository
 import com.ejden.app.data.TextSize
 import com.ejden.app.data.ThemeChoice
 import com.ejden.app.data.purchaseCashMovements
@@ -91,6 +92,8 @@ class EjdenApp : Application() {
         private set
     lateinit var dashboard: DashboardRepository
         private set
+    lateinit var team: TeamRepository
+        private set
 
     lateinit var notifications: NotificationRepository
         private set
@@ -137,6 +140,7 @@ class EjdenApp : Application() {
         preferences = PreferencesRepository(store)
         period = PeriodRepository(store)
         dashboard = DashboardRepository(sales, cash, clients, credits, products)
+        team = TeamRepository(store)
         notifications = NotificationRepository(
             store, products, sales, credits, clients, orders,
             suppliers, supplierPayments, invoices, quotes

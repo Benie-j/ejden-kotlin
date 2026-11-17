@@ -40,7 +40,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ejden.app.EjdenApp
+import com.ejden.app.data.AddMemberResult
 import com.ejden.app.data.DEFAULT_INVOICE_TERMS
+import com.ejden.app.data.TEAM_OWNER_ID
+import com.ejden.app.data.TeamPermission
+import com.ejden.app.data.TeamRole
+import com.ejden.app.data.ownerDisplayName
 import com.ejden.app.data.DEFAULT_QUOTE_TERMS
 import com.ejden.app.data.DocumentSettings
 import com.ejden.app.data.SettingsField
@@ -65,6 +70,7 @@ import com.ejden.app.ui.components.StrokeIcon
 import com.ejden.app.ui.components.rememberPhoto
 import com.ejden.app.ui.components.tap
 import com.ejden.app.ui.nav.Routes
+import com.ejden.app.ui.nav.backTo
 import com.ejden.app.ui.nav.goBack
 import com.ejden.app.ui.nav.open
 import com.ejden.app.ui.nav.returnTo
@@ -125,7 +131,7 @@ fun SettingsScreen(nav: NavController) {
         when (panel) {
             null -> item { Hub { panel = it } }
             "mon-espace" -> item { MySpacePanel(app, toast, scope) }
-            "equipe" -> item { TeamPanel(app) }
+            "equipe" -> item { TeamPanel(app, nav, toast) }
             "ventes" -> item { SalesPanel(app, toast) }
             "stock" -> item { StockPanel(app, toast) }
             "clients" -> item {
@@ -661,29 +667,128 @@ private fun MySpacePanel(app: EjdenApp, toast: ModuleToastState, scope: kotlinx.
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun TeamPanel(app: EjdenApp) {
+private fun TeamPanel(app: EjdenApp, nav: NavController, toast: ModuleToastState) {
     val c = Ejden.colors
     val profile = remember { app.settings.getUser() }
-    val name = (profile.firstName + " " + profile.lastName).jsTrim()
+    val ownerName = ownerDisplayName(profile.firstName, profile.lastName)
+
+    var reload by remember { mutableIntStateOf(0) }
+    val members = remember(reload) { app.team.getMembers() }
+    val activeId = remember(reload) { app.team.getActiveId() }
+    val rights = remember(reload) { TeamRole.entries.associateWith { app.team.permissionsOf(it) } }
+    var openId by remember { mutableStateOf<String?>(null) }
+    var newName by remember { mutableStateOf("") }
+    var newRole by remember { mutableStateOf(TeamRole.Seller) }
+    var nameInvalid by remember { mutableStateOf(false) }
+
+    fun useUser(id: String) {
+        if (!app.team.setActive(id)) {
+            toast.show("Impossible de changer d'utilisateur.")
+            return
+        }
+        reload += 1
+        // Sans le droit d'ouvrir les paramètres, on retourne à l'accueil.
+        if (!app.team.can(TeamPermission.Settings)) nav.backTo(Routes.DASHBOARD) else toast.show("Utilisateur actif changé.")
+    }
+
+    fun addUser() {
+        when (app.team.addMember(newName, newRole)) {
+            AddMemberResult.Ok -> {
+                newName = ""
+                reload += 1
+                toast.show("Utilisateur ajouté.")
+            }
+            AddMemberResult.EmptyName -> {
+                nameInvalid = true
+                toast.show("Veuillez saisir un nom.")
+            }
+            AddMemberResult.Duplicate -> {
+                nameInvalid = true
+                toast.show("Ce nom existe déjà.")
+            }
+            AddMemberResult.Failed -> toast.show("Impossible d'ajouter l'utilisateur.")
+        }
+    }
 
     Column {
         SettingsSection(
             "Utilisateurs de cet espace",
-            "Aujourd'hui, EJDEN fonctionne pour une seule personne sur cet appareil. Le travail en équipe " +
-                "demandera des comptes et un espace en ligne : il n'est pas encore disponible."
+            "L'utilisateur actif décide de ce que l'application autorise. Le changement d'utilisateur " +
+                "n'est pas protégé par un code."
         ) {
-            SoonRow(name.ifEmpty { "Vous" }, "Utilisateur de cet appareil", last = false, badge = "Actif", ok = true)
-            SoonRow("Membres de l'équipe", "Ajouter et retirer des personnes", last = false)
-            SoonRow("Inviter un membre", "Envoyer une invitation", last = true)
+            TeamUserRow(
+                name = ownerName,
+                subtitle = "Administrateur · propriétaire",
+                active = activeId == TEAM_OWNER_ID,
+                expanded = openId == TEAM_OWNER_ID,
+                last = members.isEmpty(),
+                onToggle = { openId = if (openId == TEAM_OWNER_ID) null else TEAM_OWNER_ID }
+            ) {
+                Text("Le propriétaire est toujours administrateur.", color = c.textSecondary, fontSize = 12.sp)
+                if (activeId != TEAM_OWNER_ID) {
+                    ModuleActionButton("Utiliser cet utilisateur", ModuleButtonStyle.Primary) { useUser(TEAM_OWNER_ID) }
+                }
+            }
+            members.forEachIndexed { index, member ->
+                TeamUserRow(
+                    name = member.name,
+                    subtitle = member.role.label,
+                    active = activeId == member.id,
+                    expanded = openId == member.id,
+                    last = index == members.lastIndex,
+                    onToggle = { openId = if (openId == member.id) null else member.id }
+                ) {
+                    Text("Rôle", color = c.textSecondary, fontSize = 12.sp)
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        for (role in TeamRole.entries) {
+                            FilterPill(role.label, role == member.role) {
+                                if (app.team.setMemberRole(member.id, role)) reload += 1
+                            }
+                        }
+                    }
+                    if (activeId != member.id) {
+                        ModuleActionButton("Utiliser cet utilisateur", ModuleButtonStyle.Primary) { useUser(member.id) }
+                    }
+                    DeleteControl(
+                        label = "Retirer cet utilisateur",
+                        question = "Retirer « " + member.name + " » de l'équipe ?"
+                    ) {
+                        toast.show(
+                            if (app.team.removeMember(member.id)) "Utilisateur retiré."
+                            else "Impossible de retirer cet utilisateur."
+                        )
+                        reload += 1
+                    }
+                }
+            }
         }
-        SettingsSection("Rôles prévus", "Aperçu des rôles à venir. Aucune permission n'est appliquée pour le moment.") {
+
+        SettingsSection("Ajouter un utilisateur") {
+            ModuleField("Nom") {
+                ModuleTextField(
+                    newName, { newName = it; nameInvalid = false }, "Ex. : Awa",
+                    invalid = nameInvalid, maxLength = 80
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            ModuleField("Rôle") {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for (role in TeamRole.entries) {
+                        FilterPill(role.label, role == newRole) { newRole = role }
+                    }
+                }
+            }
+            Row(Modifier.padding(top = 16.dp)) {
+                PrimaryButton("Ajouter", Modifier.weight(1f)) { addUser() }
+            }
+        }
+
+        SettingsSection(
+            "Rôles et permissions",
+            "Choisissez ce que chaque rôle peut faire. L'administrateur a toujours tous les droits."
+        ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                for ((title, text) in listOf(
-                    "Administrateur" to "Gère l'activité, l'équipe et toutes les données.",
-                    "Gérant" to "Suit les ventes, le stock et les finances.",
-                    "Vendeur" to "Enregistre les ventes et consulte les produits.",
-                    "Gestionnaire de stock" to "Gère les produits, achats et mouvements de stock."
-                )) {
+                for (role in TeamRole.entries) {
                     Column(
                         Modifier
                             .fillMaxWidth()
@@ -691,17 +796,77 @@ private fun TeamPanel(app: EjdenApp) {
                             .border(1.dp, c.border, RoundedCornerShape(10.dp))
                             .padding(horizontal = 14.dp, vertical = 12.dp)
                     ) {
-                        Text(title, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Text(text, modifier = Modifier.padding(top = 2.dp), color = c.textSecondary, fontSize = 12.sp)
+                        Text(role.label, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(role.description, modifier = Modifier.padding(top = 2.dp), color = c.textSecondary, fontSize = 12.sp)
+                        if (role == TeamRole.Admin) {
+                            Text(
+                                "Accès complet à toutes les fonctions.",
+                                modifier = Modifier.padding(top = 8.dp),
+                                color = c.textSecondary,
+                                fontSize = 12.sp
+                            )
+                        } else {
+                            for (permission in TeamPermission.entries) {
+                                if (permission == TeamPermission.Settings) continue
+                                val allowed = rights[role]?.contains(permission) == true
+                                Row(
+                                    Modifier.fillMaxWidth().heightIn(min = 46.dp).padding(top = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Text(permission.label, modifier = Modifier.weight(1f), color = c.text, fontSize = 13.sp)
+                                    SettingsSwitch(allowed) {
+                                        if (app.team.setPermission(role, permission, !allowed)) reload += 1
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        SettingsSection("Accès") {
-            SoonRow("Permissions", "Choisir ce que chaque rôle peut faire", last = false)
-            SoonRow("Appareils connectés", "Voir les appareils autorisés", last = false)
-            SoonRow("Sessions", "Fermer un accès à distance", last = true)
+    }
+}
+
+@Composable
+private fun TeamUserRow(
+    name: String,
+    subtitle: String,
+    active: Boolean,
+    expanded: Boolean,
+    last: Boolean,
+    onToggle: () -> Unit,
+    details: @Composable ColumnScope.() -> Unit
+) {
+    val c = Ejden.colors
+    Column {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 54.dp).tap(onToggle).padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(name, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(subtitle, modifier = Modifier.padding(top = 2.dp), color = c.textSecondary, fontSize = 12.sp)
+            }
+            if (active) {
+                Text(
+                    "Actif",
+                    modifier = Modifier.background(c.successSoft, CircleShape).padding(horizontal = 10.dp, vertical = 4.dp),
+                    color = c.success,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
+        if (expanded) {
+            Column(
+                Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                content = details
+            )
+        }
+        if (!last) RowDivider()
     }
 }
 
