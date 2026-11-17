@@ -18,10 +18,9 @@ sealed class ExpenseFormResult {
 }
 
 fun validateExpenseForm(labelRaw: String, amountText: String, category: ExpenseCategory): ExpenseFormResult {
-    val label = cleanText(labelRaw)
+    val label = cleanText(labelRaw).ifEmpty { category.label }
     val amount = amountOf(amountText)
 
-    if (label.isEmpty()) return ExpenseFormResult.Invalid("Veuillez décrire la dépense.", MoneyField.Text)
     if (label.length > ModuleLimits.TEXT_MAX) {
         return ExpenseFormResult.Invalid(
             "Description trop longue (${ModuleLimits.TEXT_MAX} caractères max).", MoneyField.Text
@@ -45,10 +44,9 @@ sealed class CashFormResult {
 
 fun validateCashForm(type: CashType, amountText: String, reasonRaw: String, balance: Double): CashFormResult {
     val amount = amountOf(amountText)
-    val reason = cleanText(reasonRaw)
+    val reason = cleanText(reasonRaw).ifEmpty { if (type == CashType.In) "Entrée" else "Sortie" }
 
     if (amount == null) return CashFormResult.Invalid("Montant invalide.", MoneyField.Amount)
-    if (reason.isEmpty()) return CashFormResult.Invalid("Veuillez indiquer le motif.", MoneyField.Text)
     if (reason.length > ModuleLimits.TEXT_MAX) {
         return CashFormResult.Invalid("Motif trop long (${ModuleLimits.TEXT_MAX} caractères max).", MoneyField.Text)
     }

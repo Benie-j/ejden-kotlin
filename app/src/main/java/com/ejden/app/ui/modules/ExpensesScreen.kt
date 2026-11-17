@@ -42,6 +42,7 @@ private sealed class ExpenseRow(val key: String) {
     class Item(val expense: Expense, key: String) : ExpenseRow(key)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ExpensesScreen(nav: NavController, focusNew: Boolean) {
     val app = LocalContext.current.applicationContext as EjdenApp
@@ -80,12 +81,10 @@ fun ExpensesScreen(nav: NavController, focusNew: Boolean) {
         }
     }
 
-    // Venu de « Nouvelle dépense » : le champ description est prêt.
+    // Le montant est toujours prêt à être saisi.
     LaunchedEffect(Unit) {
-        if (focusNew) {
-            delay(300)
-            focus(labelFocus)
-        }
+        delay(300)
+        focus(amountFocus)
     }
 
     fun reload() {
@@ -119,6 +118,7 @@ fun ExpensesScreen(nav: NavController, focusNew: Boolean) {
                 amountInvalid = false
                 toast.show("Dépense enregistrée.")
                 reload()
+                focus(amountFocus)
             }
         }
     }
@@ -152,13 +152,6 @@ fun ExpensesScreen(nav: NavController, focusNew: Boolean) {
 
         item {
             ModuleSection("Nouvelle dépense") {
-                ModuleField("Description") {
-                    ModuleTextField(
-                        label, { label = it; labelInvalid = false }, "Ex. : Transport de marchandises",
-                        invalid = labelInvalid, maxLength = 80, focusRequester = labelFocus
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
                 ModuleField("Montant (FCFA)") {
                     ModuleTextField(
                         amount, { amount = it.filter { ch -> ch.isDigit() }; amountInvalid = false }, "Ex. : 5000",
@@ -167,7 +160,21 @@ fun ExpensesScreen(nav: NavController, focusNew: Boolean) {
                 }
                 Spacer(Modifier.height(12.dp))
                 ModuleField("Catégorie") {
-                    ModuleSelect(categoryId, categoryOptions) { categoryId = it }
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        for ((id, name) in categoryOptions) {
+                            FilterPill(name, id == categoryId) { categoryId = id }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                ModuleField("Description (facultatif)") {
+                    ModuleTextField(
+                        label, { label = it; labelInvalid = false }, "Ex. : Transport de marchandises",
+                        invalid = labelInvalid, maxLength = 80, focusRequester = labelFocus
+                    )
                 }
                 Row(Modifier.padding(top = 16.dp)) {
                     PrimaryButton("Enregistrer la dépense", Modifier.weight(1f)) { submit() }

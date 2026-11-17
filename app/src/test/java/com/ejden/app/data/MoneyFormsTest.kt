@@ -13,9 +13,8 @@ class MoneyFormsTest {
     fun formulaireDepense() {
         val cat = ExpenseCategory.Transport
 
-        val noLabel = validateExpenseForm("  ", "5000", cat) as ExpenseFormResult.Invalid
-        assertEquals("Veuillez décrire la dépense.", noLabel.message)
-        assertEquals(MoneyField.Text, noLabel.field)
+        val noLabel = validateExpenseForm("  ", "5000", cat) as ExpenseFormResult.Valid
+        assertEquals("Transport", noLabel.label)
 
         val tooLong = validateExpenseForm("x".repeat(81), "5000", cat) as ExpenseFormResult.Invalid
         assertEquals("Description trop longue (80 caractères max).", tooLong.message)
@@ -38,8 +37,10 @@ class MoneyFormsTest {
         assertEquals("Montant invalide.", noAmount.message)
         assertEquals(MoneyField.Amount, noAmount.field)
 
-        val noReason = validateCashForm(CashType.In, "1000", "   ", 0.0) as CashFormResult.Invalid
-        assertEquals("Veuillez indiquer le motif.", noReason.message)
+        val noReason = validateCashForm(CashType.In, "1000", "   ", 0.0) as CashFormResult.Valid
+        assertEquals("Entrée", noReason.reason)
+        val noReasonOut = validateCashForm(CashType.Out, "1000", "", 0.0) as CashFormResult.Valid
+        assertEquals("Sortie", noReasonOut.reason)
 
         val tooLong = validateCashForm(CashType.In, "1000", "x".repeat(81), 0.0) as CashFormResult.Invalid
         assertEquals("Motif trop long (80 caractères max).", tooLong.message)

@@ -84,10 +84,8 @@ fun CashScreen(nav: NavController, requested: String?) {
     }
 
     LaunchedEffect(Unit) {
-        if (requested != null) {
-            delay(300)
-            focus(amountFocus)
-        }
+        delay(300)
+        focus(amountFocus)
     }
 
     fun reload() {
@@ -122,6 +120,7 @@ fun CashScreen(nav: NavController, requested: String?) {
                 reasonInvalid = false
                 toast.show(cashSavedMessage(result.type, result.goesNegative))
                 reload()
+                focus(amountFocus)
             }
         }
     }
@@ -187,7 +186,7 @@ fun CashScreen(nav: NavController, requested: String?) {
                     )
                 }
                 Spacer(Modifier.height(12.dp))
-                ModuleField("Motif") {
+                ModuleField("Motif (facultatif)") {
                     ModuleTextField(
                         reason, { reason = it; reasonInvalid = false }, "Ex. : Fonds de caisse du matin",
                         invalid = reasonInvalid, maxLength = 80, focusRequester = reasonFocus
